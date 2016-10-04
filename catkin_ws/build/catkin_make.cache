@@ -1,0 +1,2 @@
+auto_turtle:hello:p2_robot
+-DCATKIN_DEVEL_PREFIX=/home/marcel/Documents/Robotics-CS3027/catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/home/marcel/Documents/Robotics-CS3027/catkin_ws/install -G Unix Makefiles

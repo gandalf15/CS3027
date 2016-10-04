@@ -1,0 +1,8 @@
+prefix=/home/marcel/Documents/Robotics-CS3027/catkin_ws/install
+
+Name: auto_turtle
+Description: Description of auto_turtle
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/marcel/Documents/Robotics-CS3027/catkin_ws/install/lib 
+Requires: 
