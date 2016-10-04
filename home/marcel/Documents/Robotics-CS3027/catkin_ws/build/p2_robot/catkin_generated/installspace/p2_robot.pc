@@ -1,8 +1,0 @@
-prefix=/home/marcel/Documents/Robotics-CS3027/catkin_ws/install
-
-Name: p2_robot
-Description: Description of p2_robot
-Version: 0.0.0
-Cflags: 
-Libs: -L/home/marcel/Documents/Robotics-CS3027/catkin_ws/install/lib 
-Requires: 
