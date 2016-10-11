@@ -26,7 +26,7 @@ class simplebot:
     		x = range * math.cos(curAngle)
     		y = range * math.sin(curAngle)
 
-    		if ((abs(y)<self.width/2) and (x<self.min_range)):
+    		if ((abs(y)<0.25) and (x<self.min_range)):
     			obstacle = True
     			print "Obstacle at ", x, " ", y, " be careful!"
 
