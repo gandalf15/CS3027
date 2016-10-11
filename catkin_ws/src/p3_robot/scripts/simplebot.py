@@ -17,14 +17,13 @@ class simplebot:
 		rospy.loginfo("Starting the robot")
 		self.ctl_vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
 		self.cmd_vel = Twist()
-		self.aryLaserBaseData = []
+		self.aryLaserBaseData = LaserScan()
 		rospy.Subscriber('/base_scan', LaserScan, self.transformLaserToBase)
 		self.tf = tf.TransformListener()
 		self.update_rate = rospy.Rate(10)
 		self.min_range = 0.5
 		self.width = 0.35
-		self.blocked = False		
-
+		self.blocked = False
 
 	def transformPointToBase(self, x, y, strFrameId):
 		try:
@@ -52,8 +51,8 @@ class simplebot:
 			while not np:
 				print "in while loop"
 				np=self.transformPointToBase(x,y,"/base_laser_link")
-			print "Point X: ", x, "\nPoint y: ", y
-			print "New point: ", np
+			#print "Point X: ", x, "\nPoint y: ", y
+			#print "New point: ", np
 			self.aryLaserBaseData.append(np)
 			curAngle=curAngle+inc
 			
@@ -61,7 +60,7 @@ class simplebot:
 	def detectObstacle(self):
 		print "I am in detectObstacle"
 		for range in self.aryLaserBaseData:
-			print "Point X: ", range.point.x, "\nPoint y: ", range.point.y
+			#print "Point X: ", range.point.x, "\nPoint y: ", range.point.y
 			if ((abs(range.point.y)<=0.25) and (range.point.x<=self.min_range)):
 				return True
 		return False
@@ -94,14 +93,15 @@ class simplebot:
 ############################################################################
 
 if __name__ == '__main__':
-	robot = simplebot()
-	while not rospy.is_shutdown():	
-		try:
+	try:
+		robot = simplebot()
+		while not rospy.is_shutdown():
 			robot.drive()
-			robot.update_rate.sleep()
-			rospy.spin()
-		except rospy.ROSInterruptException:
-			print "Job Done. Nothing to do here."
-			pass
+			#robot.update_rate.sleep()
+		rospy.spin()
+
+	except rospy.ROSInterruptException:
+		print "Job Done. Nothing to do here."
+		pass
 
 #############################################################################
