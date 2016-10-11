@@ -14,12 +14,14 @@ from geometry_msgs.msg import Twist
 class simplebot:
 	def __init__(self):
 		rospy.init_node('simplebot')
+		rospy.loginfo("Starting the robot")
+		self.ctl_vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+		self.cmd_vel = Twist()
+		rospy.Subscriber('/base_scan', LaserScan, self.checkDistance)
+		self.tf = tf.TransformListener()
+		self.update_rate = rospy.Rate(5)
 		self.min_range = 0.5
 		self.width = 0.35
-		self.laser_subscriber = rospy.Subscriber('/base_scan', LaserScan, self.checkDistance)
-		self.tf_subscriber = tf.TransformListener()
-		self.publisher = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
-		self.obstacle = False
 
 	def transformToBase(self,x,y):
 		try:
@@ -27,12 +29,15 @@ class simplebot:
 
 			#print listener.transformPoint("/base_link",ps), "\n", Point(x,y,0)
 			#print "\n"
-			return self.tf_subscriber.transformPoint('/base_link', ps)
+			return self.tf.transformPoint('/base_link', ps)
 		except(tf.LookupException):
+			print "LookupException"
 			return
 		except(tf.ConnectivityException):
+			print "ConnectivityException"
 			return
 		except(tf.ExtrapolationException):
+			print "ExtrapolationException"
 			return
 
 	def checkDistance(self, laserScan):
@@ -42,28 +47,29 @@ class simplebot:
 		for range in laserScan.ranges:
 			x=range*math.cos(curAngle)
 			y=range*math.sin(curAngle)
-			np = self.transformToBase(x, y)
-			if np:
-				new_x = np.point.x
-				new_y = np.point.y
-
-				if ((abs(new_y)<self.width) and (new_x<self.min_range)):
-					#print "obstacle at \nX: ", new_x, "\n", "Y: ", new_y, "\n"
-					self.obstacle = True
-
+			#np = self.transformToBase(x, y)
+			ps=PointStamped(header=Header(stamp=rospy.Time.now(),frame_id="/base_laser_link"), point=Point(x,y,0))
+			np=self.tf.transformPoint('/base_link', ps)
+			new_x = np.point.x
+			new_y = np.point.y
 			curAngle=curAngle+inc
 
-		tw=Twist()
-		curPosition = self.tf_subscriber.lookupTransform('/base_link', '/odom', rospy.Time(0))
+	def detectObstacle(self, baseLaserScan):
+		for range in baseLaserScan.ranges:
+			
+		if ((abs(new_y)<self.width) and (new_x<self.min_range)):
+				#print "obstacle at \nX: ", new_x, "\n", "Y: ", new_y, "\n"
+				self.cmd_vel = self.set_vel(0)
+		#curPosition = self.tf.lookupTransform('/base_link', '/odom', rospy.Time(0))
 		if (not self.obstacle):
-			tw.angular.z = 0
-			tw.linear.x = 0.5
+			self.cmd_vel.angular.z = 0
+			self.cmd_vel.linear.x = 0.5
 		else:
-			tw.angular.z=5
-			tw.linear.x=0
+			self.cmd_vel.angular.z=5
+			self.cmd_vel.linear.x=0
 		print tw
-		self.publisher.publish(tw)
-		print curPosition
+		self.ctl_vel.publish(self.cmd_vel)
+		#print curPosition
 		return
 
 ############################################################################
@@ -73,6 +79,7 @@ class simplebot:
 if __name__ == '__main__':
 	try:
 		robot = simplebot()
+		robot.update_rate.sleep()
 		rospy.spin()
 	except rospy.ROSInterruptException:
 		pass
