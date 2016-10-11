@@ -4,6 +4,7 @@ import roslib
 import math
 from random import randint
 from sensor_msgs.msg import LaserScan
+from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Twist
 
 class simplebot:
@@ -11,9 +12,19 @@ class simplebot:
     	rospy.init_node('simplebot')
     	self.min_range = 0.5
     	self.width = 0.35
-    	self.subscriber = rospy.Subscriber('/base_scan', LaserScan, self.checkDistance)
+    	#self.laser_subscriber = rospy.Subscriber('/base_scan', LaserScan, self.checkDistance)
+        self.odometry_subscriber = rospy.Subscriber('/base_pose_ground_truth', Odometry, self.get_current_position)
     	self.publisher = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
     	self.rate = rospy.Rate(5)
+
+    def get_current_position(self, odometry):
+        currtent_position = odometry.pose.pose.position
+        wanted_position_x = -15
+        wanted_position_y = 22 
+        if (currtent_position.x != wanted_position_x):
+            
+        else:
+            
 
     def checkDistance(self, laserScan):
     	curAngle = laserScan.angle_min

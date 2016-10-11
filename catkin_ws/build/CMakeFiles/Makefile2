@@ -617,6 +617,21 @@ p2_robot/preinstall:
 .PHONY : p2_robot/preinstall
 
 #=============================================================================
+# Directory level rules for directory p3_robot
+
+# Convenience name for "all" pass in the directory.
+p3_robot/all:
+.PHONY : p3_robot/all
+
+# Convenience name for "clean" pass in the directory.
+p3_robot/clean:
+.PHONY : p3_robot/clean
+
+# Convenience name for "preinstall" pass in the directory.
+p3_robot/preinstall:
+.PHONY : p3_robot/preinstall
+
+#=============================================================================
 # Special targets to cleanup operation of make.
 
 # Special rule to run CMake to check the build system integrity.

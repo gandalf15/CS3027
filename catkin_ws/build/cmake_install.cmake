@@ -120,6 +120,7 @@ IF(NOT CMAKE_INSTALL_LOCAL_ONLY)
   INCLUDE("/home/marcel/Documents/Robotics-CS3027/catkin_ws/build/auto_turtle/cmake_install.cmake")
   INCLUDE("/home/marcel/Documents/Robotics-CS3027/catkin_ws/build/hello/cmake_install.cmake")
   INCLUDE("/home/marcel/Documents/Robotics-CS3027/catkin_ws/build/p2_robot/cmake_install.cmake")
+  INCLUDE("/home/marcel/Documents/Robotics-CS3027/catkin_ws/build/p3_robot/cmake_install.cmake")
 
 ENDIF(NOT CMAKE_INSTALL_LOCAL_ONLY)
 
