@@ -632,6 +632,21 @@ p3_robot/preinstall:
 .PHONY : p3_robot/preinstall
 
 #=============================================================================
+# Directory level rules for directory viki
+
+# Convenience name for "all" pass in the directory.
+viki/all:
+.PHONY : viki/all
+
+# Convenience name for "clean" pass in the directory.
+viki/clean:
+.PHONY : viki/clean
+
+# Convenience name for "preinstall" pass in the directory.
+viki/preinstall:
+.PHONY : viki/preinstall
+
+#=============================================================================
 # Special targets to cleanup operation of make.
 
 # Special rule to run CMake to check the build system integrity.
