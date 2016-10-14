@@ -22,7 +22,7 @@ class simplebot:
 		rospy.Subscriber('/base_scan', LaserScan, self.detectObstacle)
 		self.tf = tf.TransformListener()
 		self.laserData = LaserScan()
-		self.update_rate = rospy.Rate(10)
+		self.update_rate = rospy.Rate(5)
 		self.min_range = 0.5
 		self.width = 0.35
 		self.blocked = False
@@ -40,21 +40,39 @@ class simplebot:
 				self.blocked = True
 				break
 			curAngle=curAngle+inc
-			
+	
+	def getPosition(self):
+		return self.tf.lookupTransform('/base_link', '/odom', rospy.Time(0))
+
 	def drive(self):
 		print "I am in drive"
 		if (not self.blocked):
-			self.cmd_vel.angular.z = 0
-			self.cmd_vel.linear.x = 1
+			try:
+			curPosition = getPosition()
+		except(tf.LookupException):
+			rospy.loginfo("LookupException")
+			return
+		except(tf.ConnectivityException):
+			rospy.loginfo("ConnectivityException")
+			return
+		except(tf.ExtrapolationException):
+			rospy.loginfo("ExtrapolationException")
+			return
+			wantedPoint = [2,1]
+			if (curPosition.point.x != wantedPoint[0]):
+
+				self.cmd_vel.angular.z = 0
+				self.cmd_vel.linear.x = 1
+			elif(curPosition.point.y != wantedPoint[1]):
+				self.cmd_vel.angular.z = 0
+				self.cmd_vel.linear.x = 1
+
 		else:
 			self.cmd_vel.angular.z=randint(1, 9)
 			self.cmd_vel.linear.x=0
 
 		self.ctl_vel.publish(self.cmd_vel)	
 		
-
-	def getPosition(self):
-		return self.tf.lookupTransform('/base_link', '/odom', rospy.Time(0))
 
 ############################################################################
 # end of class
