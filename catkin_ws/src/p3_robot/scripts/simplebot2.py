@@ -28,7 +28,7 @@ class simplebot:
 		self.blocked = False
 
 	def detectObstacle(self,laserScan):
-		print "I am in transformLaserToBase"
+		print "I am in detectObstacle"
 		self.laserData = laserScan
 		curAngle=laserScan.angle_min
 		inc=laserScan.angle_increment
@@ -36,30 +36,33 @@ class simplebot:
 		for range in laserScan.ranges:
 			x=range*math.cos(curAngle)
 			y=range*math.sin(curAngle)
-			if ((abs(y)<=0.25-0.05) and (x<=self.min_range)):
+			if ((abs(y)<=1) and (x<=self.min_range)):
 				self.blocked = True
+				print "DETECTED OBSTACLE!!!!!!!!!!!!!"
 				break
 			curAngle=curAngle+inc
 	
 	def getPosition(self):
-		return self.tf.lookupTransform('/base_link', '/odom', rospy.Time(0))
+		return self.tf.lookupTransform('/odom', '/base_link', rospy.Time(0))
 
 	def drive(self):
 		print "I am in drive"
 		if (not self.blocked):
 			try:
-			curPosition = getPosition()
-		except(tf.LookupException):
-			rospy.loginfo("LookupException")
-			return
-		except(tf.ConnectivityException):
-			rospy.loginfo("ConnectivityException")
-			return
-		except(tf.ExtrapolationException):
-			rospy.loginfo("ExtrapolationException")
-			return
+				curPosition = self.getPosition()
+				print curPosition
+				print curPosition[0]
+			except(tf.LookupException):
+				rospy.loginfo("LookupException")
+				return
+			except(tf.ConnectivityException):
+				rospy.loginfo("ConnectivityException")
+				return
+			except(tf.ExtrapolationException):
+				rospy.loginfo("ExtrapolationException")
+				return
 			wantedPoint = [2,1]
-			if (curPosition.point.x != wantedPoint[0]):
+			if (curPosition[0] != wantedPoint[0]):
 
 				self.cmd_vel.angular.z = 0
 				self.cmd_vel.linear.x = 1
