@@ -312,6 +312,18 @@ p3_robot_BINARY_DIR:STATIC=/home/marcel/Documents/Robotics-CS3027/catkin_ws/buil
 //Value Computed by CMake
 p3_robot_SOURCE_DIR:STATIC=/home/marcel/Documents/Robotics-CS3027/catkin_ws/src/p3_robot
 
+//Value Computed by CMake
+p4_robot_BINARY_DIR:STATIC=/home/marcel/Documents/Robotics-CS3027/catkin_ws/build/p4_robot
+
+//Value Computed by CMake
+p4_robot_SOURCE_DIR:STATIC=/home/marcel/Documents/Robotics-CS3027/catkin_ws/src/p4_robot
+
+//Value Computed by CMake
+robot01_BINARY_DIR:STATIC=/home/marcel/Documents/Robotics-CS3027/catkin_ws/build/robot01
+
+//Value Computed by CMake
+robot01_SOURCE_DIR:STATIC=/home/marcel/Documents/Robotics-CS3027/catkin_ws/src/robot01
+
 //The directory containing a CMake configuration file for rosconsole.
 rosconsole_DIR:PATH=/opt/ros/indigo/share/rosconsole/cmake
 
@@ -447,7 +459,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_LOCAL_GENERATORS:INTERNAL=7
+CMAKE_NUMBER_OF_LOCAL_GENERATORS:INTERNAL=9
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP

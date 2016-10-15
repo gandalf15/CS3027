@@ -1,0 +1,8 @@
+prefix=/home/marcel/Documents/Robotics-CS3027/catkin_ws/devel
+
+Name: p4_robot
+Description: Description of p4_robot
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/marcel/Documents/Robotics-CS3027/catkin_ws/devel/lib 
+Requires: 

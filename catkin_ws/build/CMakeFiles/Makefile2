@@ -632,6 +632,36 @@ p3_robot/preinstall:
 .PHONY : p3_robot/preinstall
 
 #=============================================================================
+# Directory level rules for directory p4_robot
+
+# Convenience name for "all" pass in the directory.
+p4_robot/all:
+.PHONY : p4_robot/all
+
+# Convenience name for "clean" pass in the directory.
+p4_robot/clean:
+.PHONY : p4_robot/clean
+
+# Convenience name for "preinstall" pass in the directory.
+p4_robot/preinstall:
+.PHONY : p4_robot/preinstall
+
+#=============================================================================
+# Directory level rules for directory robot01
+
+# Convenience name for "all" pass in the directory.
+robot01/all:
+.PHONY : robot01/all
+
+# Convenience name for "clean" pass in the directory.
+robot01/clean:
+.PHONY : robot01/clean
+
+# Convenience name for "preinstall" pass in the directory.
+robot01/preinstall:
+.PHONY : robot01/preinstall
+
+#=============================================================================
 # Directory level rules for directory viki
 
 # Convenience name for "all" pass in the directory.
