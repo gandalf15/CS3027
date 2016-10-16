@@ -31,23 +31,23 @@ class Robot:
 		self.laserData = LaserScan()
 
 		if(dimensions_xyz == []):
-			self.dimensions_xyz = self.getParam()
+			self.dimensions_xyz = self.getDimensionsParam()
 		else:
-			self.dimensions_xyz = self.setParam(dimensions_xyz)
+			self.dimensions_xyz = self.setDimensionsParam(dimensions_xyz)
 
 		self.robotPose = RobotPoseBr(self.dimensions_xyz)
 		self.update_rate = rospy.Rate(5)
 		self.min_range = 0.5
 		self.blocked = False
 
-	def setParam(self, dimensions_xyz):
+	def setDimensionsParam(self, dimensions_xyz):
 		if (len(dimensions_xyz) == 3):
 			rospy.set_param_raw('/robot/dimensions_xyz', [float(dimensions_xyz[0]),float(dimensions_xyz[1]),float(dimensions_xyz[2])])
 			self.dimensions_xyz = rospy.get_param_raw('/robot/dimensions_xyz', [float(dimensions_xyz[0]),float(dimensions_xyz[1]),float(dimensions_xyz[2])])
 		else:
 			rospy.set_param_raw('/robot/dimensions_xyz', [1.0,1.0,0.25])
 
-	def getParam(self):
+	def getDimensionsParam(self):
 		if rospy.has_param('/robot/dimensions_xyz'):
 			self.dimensions_xyz = rospy.get_param_raw('/robot/dimensions_xyz', [1.0,1.0,0.25])
 		else:
