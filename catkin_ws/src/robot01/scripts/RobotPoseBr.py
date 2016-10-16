@@ -12,7 +12,7 @@ from visualization_msgs.msg import MarkerArray
 
 class RobotPoseBr:
 	"""docstring for ClassName"""
-	def __init__(self):
+	def __init__(self, dimensions_xyz):
 		self.realPose = Odometry()
 		self.odomPose = Odometry()
 		self.broadcaster = tf.TransformBroadcaster()

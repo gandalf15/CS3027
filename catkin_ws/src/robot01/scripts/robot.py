@@ -1,3 +1,6 @@
+# http://wiki.ros.org/rospy/Overview/Parameter%20Server
+
+
 #!/usr/bin/env python
 import rospy
 import roslib
@@ -17,42 +20,40 @@ from visualization_msgs.msg import MarkerArray
 ############################################################################
 
 class Robot:
-	def __init__(self):
+	def __init__(self, dimensions_xyz=[]):
 		rospy.init_node('simplebot')
 		rospy.loginfo("Starting the robot")
 		self.ctl_vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
-		self.pubMarker = rospy.Publisher('/markerPoints', Marker, queue_size=100)
 		self.cmd_vel = Twist()
-		self.aryLaserBaseData = LaserScan()
-		self.markerAry=MarkerArray()
+		self.pubMarker = rospy.Publisher('/markerPoints', Marker, queue_size=100)
 		rospy.Subscriber('/base_scan', LaserScan, self.detectObstacle)
 		self.tf = tf.TransformListener()
 		self.laserData = LaserScan()
+
+		if(dimensions_xyz == []):
+			self.dimensions_xyz = self.getParam()
+		else:
+			self.dimensions_xyz = self.setParam(dimensions_xyz)
+
+		self.robotPose = RobotPoseBr(self.dimensions_xyz)
 		self.update_rate = rospy.Rate(5)
 		self.min_range = 0.5
-		self.width = 0.35
 		self.blocked = False
 
-	def setRvizMarker(self,x,y,r,g,b,frame):
-		mr=Marker()
-		mr.header.frame_id=frame
-		mr.ns="robot"
-		mr.id=1
-		mr.type=mr.CUBE
-		mr.action=mr.ADD
-		mr.pose.position.x=x
-		mr.pose.position.y=y
-		mr.pose.orientation.w=1
-		mr.scale.x=0.35
-		mr.scale.y=0.35
-		mr.scale.z=0.5
-		mr.color.r=r
-		mr.color.g=g
-		mr.color.b=b
-		mr.color.a=1.0
-		self.pubMarker.publish(mr)
-		print self.markerAry
+	def setParam(self, dimensions_xyz):
+		if (len(dimensions_xyz) == 3):
+			rospy.set_param_raw('/robot/dimensions_xyz', [float(dimensions_xyz[0]),float(dimensions_xyz[1]),float(dimensions_xyz[2])])
+			self.dimensions_xyz = rospy.get_param_raw('/robot/dimensions_xyz', [float(dimensions_xyz[0]),float(dimensions_xyz[1]),float(dimensions_xyz[2])])
+		else:
+			rospy.set_param_raw('/robot/dimensions_xyz', [1.0,1.0,0.25])
 
+	def getParam(self):
+		if rospy.has_param('/robot/dimensions_xyz'):
+			self.dimensions_xyz = rospy.get_param_raw('/robot/dimensions_xyz', [1.0,1.0,0.25])
+		else:
+			rospy.set_param_raw('/robot/dimensions_xyz', [1.0,1.0,0.25])
+			self.dimensions_xyz = rospy.get_param_raw('/robot/dimensions_xyz', [1.0,1.0,0.25])
+		
 	def detectObstacle(self,laserScan):
 		print "I am in detectObstacle"
 		self.laserData = laserScan
