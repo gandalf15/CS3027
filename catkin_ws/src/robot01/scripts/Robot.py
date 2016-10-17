@@ -1,7 +1,9 @@
-# http://wiki.ros.org/rospy/Overview/Parameter%20Server
-
-
 #!/usr/bin/env python
+
+"""
+	# http://wiki.ros.org/rospy/Overview/Parameter%20Server
+
+"""
 import rospy
 import roslib
 import math

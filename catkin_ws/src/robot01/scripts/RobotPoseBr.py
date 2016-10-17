@@ -1,6 +1,10 @@
-# http://wiki.ros.org/tf/Tutorials/Writing%20a%20tf%20broadcaster%20(Python)
-# http://wiki.ros.org/tf/Tutorials/Adding%20a%20frame%20(Python)
-# http://wiki.ros.org/PyStyleGuide
+#!/usr/bin/env python
+
+"""
+	# http://wiki.ros.org/tf/Tutorials/Writing%20a%20tf%20broadcaster%20(Python)
+	# http://wiki.ros.org/tf/Tutorials/Adding%20a%20frame%20(Python)
+	# http://wiki.ros.org/PyStyleGuide
+"""
 
 import rospy
 import tf
