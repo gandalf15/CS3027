@@ -7,66 +7,98 @@
 """
 
 import rospy
+#import roslib
 import tf
-from geometry_msgs.msg import PointStamped
-from std_msgs.msg import Header
-from geometry_msgs.msg import Point
+from nav_msgs.msg import Odometry
+#from geometry_msgs.msg import PointStamped
+#from std_msgs.msg import Header
+#from geometry_msgs.msg import Point
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
 
 class RobotPoseBr:
 	"""docstring for ClassName"""
-	def __init__(self, dimensions_xyz):
+	def __init__(self, dimensions_xyz=[1,1,0.25]):
+		rospy.init_node('Robot_Pose_Broadcaster')
+		rospy.loginfo("Starting the Robot_Pose_Broadcaster")
 		self.realPose = Odometry()
 		self.odomPose = Odometry()
+		self.dimensions_xyz = dimensions_xyz
 		self.broadcaster = tf.TransformBroadcaster()
-		self.markerPub = rospy.Publisher('/RealRobotPoseMarker', MarkerArray, queue_size=100)
+		self.markerPub = rospy.Publisher('/RobotPoseMarker', MarkerArray, queue_size=1)
 		self.markerAry = []
+		self.marker_id = 0
 		self.updateRate = rospy.Rate(10)
-		self.markerCounter = 0
-		rospy.init_node('Real_Robot_Pose_Broadcaster')
-		rospy.loginfo("Starting the Real_Robot_Pose_Broadcaster")
-		rospy.Subscriber('/base_pose_ground_truth', Odometry, self.handlePosition)
+		rospy.Subscriber('/base_pose_ground_truth', Odometry, self.handle_real_position)
+		rospy.Subscriber('/odom', Odometry, self.handle_odom_position)
 		while not rospy.is_shutdown():
-			self.broadcastPosition(self.realPose)
-			self.drawPositionReal(self.realPose)
-			#self.drawPositionOdom()
+			self.broadcast_position(self.realPose)
+			self.set_real_pose_marker()
+			self.set_odom_pose_marker()
+			self.draw_markers()
 			self.updateRate.sleep()
+		rospy.spin()
 			
-	def setRvizMarker(self,x,y,r,g,b,frame,nameSpace):
+	def addMarker(self,x,y,r,g,b,namespace,frame_id,alpha):
 		marker = Marker()
-		marker.header.frame_id = frame
-		marker.ns = nameSpace
-		marker.id = self.markerCount
-		self.markerCounter += 1
-		marker.type=marker.CUBE
-		marker.action=marker.ADD
-		marker.pose.position.x=x
-		marker.pose.position.y=y
-		marker.pose.orientation.w=1
-		marker.scale.x=0.35
-		marker.scale.y=0.35
-		marker.scale.z=0.5
-		marker.color.r=r
-		marker.color.g=g
-		marker.color.b=b
-		marker.color.a=1.0
+		marker.header.frame_id = frame_id
+		marker.ns = namespace
+		marker.id = self.marker_id
+		self.marker_id += 1
+		marker.type = marker.CUBE
+		marker.action = marker.ADD
+		marker.pose.position.x = x
+		marker.pose.position.y = y
+		marker.pose.orientation.w = 1
+		marker.scale.x = self.dimensions_xyz[0]
+		marker.scale.y = self.dimensions_xyz[1]
+		marker.scale.z = self.dimensions_xyz[2]
+		marker.color.r = r
+		marker.color.g = g
+		marker.color.b = b
+		marker.color.a = alpha
 		self.markerAry.append(marker)
 		#self.pubMarker.publish(self.markerAry)
 
-	def drawPositionReal(self,odometryData):
-
-
-	def drawPositionOdom(self,odometryData):
-
-
-	def broadcastPosition(self,odometryData):
-		self.broadcaster.sendTransform(odometryData.pose.pose.position, 
-										odometryData.pose.pose.orientation, 
+	def draw_markers(self):
+		markerArray = MarkerArray()
+		for m in self.markerAry:
+			markerArray.markers.append(m)
+		self.markerPub.publish(markerArray)
+		self.marker_id = 0
+	"""
+	def clear_markers(self):
+		markerArray=MarkerArray()
+		for m in self.markerAry:
+			m.action = m.DELETE
+			markerArray.markers.append(m)
+		self.markerPub.publish(markerArray)
+	"""
+	def broadcast_position(self,odometryData):
+		l = self.realPose.pose.pose.position
+		q = self.realPose.pose.pose.orientation
+		self.broadcaster.sendTransform((l.x, l.y,l.z), 
+										(q.x, q.y, q.z, q.w), 
 										rospy.Time.now(), 
 										'/real_robot_pose', 
 										'/map')
+	def set_odom_pose_marker(self):
+		x = self.odomPose.pose.pose.position.x
+		y = self.odomPose.pose.pose.position.y
+		namespace = 'robot_odom_pose'
+		frame_id = '/odom'
+		self.addMarker(x,y,0.1,0.1,1,namespace,frame_id,alpha=1)
+	def set_real_pose_marker(self):
+		x = self.realPose.pose.pose.position.x
+		y = self.realPose.pose.pose.position.y
+		namespace = 'robot_real_pose'
+		frame_id = '/map'
+		self.addMarker(x,y,0.1,1,0.1,namespace,frame_id,alpha=1)
 
-	def handlePosition(self,odometryData):
+	def handle_odom_position(self,odomData):
+		self.odomPose = odomData
+
+	def handle_real_position(self,odometryData):
 		self.realPose = odometryData
 
+robotBr = RobotPoseBr()

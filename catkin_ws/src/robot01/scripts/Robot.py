@@ -37,24 +37,24 @@ class Robot:
 		else:
 			self.dimensions_xyz = self.setDimensionsParam(dimensions_xyz)
 
-		self.robotPose = RobotPoseBr(self.dimensions_xyz)
+		#self.robotPose = RobotPoseBr(self.dimensions_xyz)
 		self.update_rate = rospy.Rate(5)
 		self.min_range = 0.5
 		self.blocked = False
 
 	def setDimensionsParam(self, dimensions_xyz):
 		if (len(dimensions_xyz) == 3):
-			rospy.set_param_raw('/robot/dimensions_xyz', [float(dimensions_xyz[0]),float(dimensions_xyz[1]),float(dimensions_xyz[2])])
-			self.dimensions_xyz = rospy.get_param_raw('/robot/dimensions_xyz', [float(dimensions_xyz[0]),float(dimensions_xyz[1]),float(dimensions_xyz[2])])
+			rospy.set_param('/robot/dimensions_xyz', [float(dimensions_xyz[0]),float(dimensions_xyz[1]),float(dimensions_xyz[2])])
+			self.dimensions_xyz = rospy.get_param('/robot/dimensions_xyz', [float(dimensions_xyz[0]),float(dimensions_xyz[1]),float(dimensions_xyz[2])])
 		else:
-			rospy.set_param_raw('/robot/dimensions_xyz', [1.0,1.0,0.25])
+			rospy.set_param('/robot/dimensions_xyz', [1.0,1.0,0.25])
 
 	def getDimensionsParam(self):
 		if rospy.has_param('/robot/dimensions_xyz'):
-			self.dimensions_xyz = rospy.get_param_raw('/robot/dimensions_xyz', [1.0,1.0,0.25])
+			self.dimensions_xyz = rospy.get_param('/robot/dimensions_xyz', [1.0,1.0,0.25])
 		else:
-			rospy.set_param_raw('/robot/dimensions_xyz', [1.0,1.0,0.25])
-			self.dimensions_xyz = rospy.get_param_raw('/robot/dimensions_xyz', [1.0,1.0,0.25])
+			rospy.set_param('/robot/dimensions_xyz', [1.0,1.0,0.25])
+			self.dimensions_xyz = rospy.get_param('/robot/dimensions_xyz', [1.0,1.0,0.25])
 		
 	def detectObstacle(self,laserScan):
 		print "I am in detectObstacle"
@@ -75,7 +75,6 @@ class Robot:
 		return self.tf.lookupTransform('/odom', '/base_link', rospy.Time(0))
 
 	def drive(self):
-		self.setRvizMarker(0, 0, 0.5, 0, 1, "/base_link")
 		print "I am in drive"
 		if (not self.blocked):
 			try:
@@ -113,7 +112,7 @@ class Robot:
 
 if __name__ == '__main__':
 	try:
-		robot = simplebot()
+		robot = Robot()
 		while not rospy.is_shutdown():
 			robot.drive()
 			robot.update_rate.sleep()
