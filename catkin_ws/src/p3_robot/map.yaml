@@ -1,0 +1,6 @@
+image: "/opt/ros/indigo/share/stage_ros/world/willow-full.pgm"
+resolution: 0.1
+origin: [-27.0,-26.35,0.0]
+occupied_thresh: 0.5
+free_thresh: 0.3
+negate: 0
