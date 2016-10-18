@@ -2,6 +2,7 @@
 
 """
 	# http://wiki.ros.org/rospy/Overview/Parameter%20Server
+	# http://edu.gaitech.hk/turtlebot/map-navigation.html
 
 """
 import rospy
