@@ -65,7 +65,7 @@ class Robot:
 		for range in laserScan.ranges:
 			x=range*math.cos(curAngle)
 			y=range*math.sin(curAngle)
-			if ((abs(y)<=0.5) and (x<=self.min_range)):
+			if ((abs(y)<=1.5) and (x<=self.min_range*2)):
 				self.blocked = True
 				print "DETECTED OBSTACLE!!!!!!!!!!!!!"
 				break
@@ -94,13 +94,13 @@ class Robot:
 			if (curPosition[0] != wantedPoint[0]):
 
 				self.cmd_vel.angular.z = 0
-				self.cmd_vel.linear.x = 0.1
+				self.cmd_vel.linear.x = 0.5
 			elif(curPosition.point.y != wantedPoint[1]):
 				self.cmd_vel.angular.z = 0
-				self.cmd_vel.linear.x = 0.1
+				self.cmd_vel.linear.x = 0.5
 
 		else:
-			self.cmd_vel.angular.z=randint(1, 9)
+			self.cmd_vel.angular.z=1
 			self.cmd_vel.linear.x=0
 
 		self.ctl_vel.publish(self.cmd_vel)	

@@ -39,7 +39,7 @@ class RobotPoseBr:
 			self.updateRate.sleep()
 		rospy.spin()
 			
-	def addMarker(self,x,y,r,g,b,namespace,frame_id,alpha):
+	def addMarker(self,position,orientation,r,g,b,namespace,frame_id,alpha):
 		marker = Marker()
 		marker.header.frame_id = frame_id
 		marker.ns = namespace
@@ -47,9 +47,8 @@ class RobotPoseBr:
 		self.marker_id += 1
 		marker.type = marker.CUBE
 		marker.action = marker.ADD
-		marker.pose.position.x = x
-		marker.pose.position.y = y
-		marker.pose.orientation.w = 1
+		marker.pose.position = position
+		marker.pose.orientation = orientation
 		marker.scale.x = self.dimensions_xyz[0]
 		marker.scale.y = self.dimensions_xyz[1]
 		marker.scale.z = self.dimensions_xyz[2]
@@ -83,17 +82,17 @@ class RobotPoseBr:
 										'/real_robot_pose', 
 										'/map')
 	def set_odom_pose_marker(self):
-		x = self.odomPose.pose.pose.position.x
-		y = self.odomPose.pose.pose.position.y
+		position = self.odomPose.pose.pose.position
+		orientation = self.odomPose.pose.pose.orientation
 		namespace = 'robot_odom_pose'
 		frame_id = '/odom'
-		self.addMarker(x,y,0.1,0.1,1,namespace,frame_id,alpha=1)
+		self.addMarker(position,orientation,0.1,0.1,1,namespace,frame_id,alpha=1)
 	def set_real_pose_marker(self):
-		x = self.realPose.pose.pose.position.x
-		y = self.realPose.pose.pose.position.y
+		position = self.realPose.pose.pose.position
+		orientation = self.realPose.pose.pose.orientation
 		namespace = 'robot_real_pose'
 		frame_id = '/map'
-		self.addMarker(x,y,0.1,1,0.1,namespace,frame_id,alpha=1)
+		self.addMarker(position,orientation,0.1,1,0.1,namespace,frame_id,alpha=1)
 
 	def handle_odom_position(self,odomData):
 		self.odomPose = odomData
