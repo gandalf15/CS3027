@@ -7,7 +7,6 @@
 """
 import math
 import rospy
-import roslib
 from nav_msgs.srv import GetMap
 from nav_msgs.msg import OccupancyGrid
 
@@ -28,8 +27,7 @@ class MapDecomposition:
 		self.grid.info.width = int(math.ceil(self.loadedMap.info.width / float(self.grid_cell_size)))
 		self.grid.info.height = int(math.ceil(self.loadedMap.info.height / float(self.grid_cell_size)))
 		self.grid.info.resolution = self.grid_cell_size / 10.0
-		self.grid.info.origin.position.x = self.loadedMap.info.origin.position.x
-		self.grid.info.origin.position.y = self.loadedMap.info.origin.position.y
+		self.grid.info.origin.position = self.loadedMap.info.origin.position
 		self.grid.info.origin.orientation.w = 1
 		self.get_decomposition()
 		while not rospy.is_shutdown():
@@ -65,7 +63,6 @@ class MapDecomposition:
 					self.grid.data.append(100)
 					return
 		self.grid.data.append(0)
-
 
 	def get_decomposition(self):
 		step = self.loadedMap.info.width*self.grid_cell_size
