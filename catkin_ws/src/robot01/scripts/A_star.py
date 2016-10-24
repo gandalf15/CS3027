@@ -8,6 +8,7 @@
 import math
 import rospy
 from Queue import PriorityQueue
+from nav_msgs.msg import OccupancyGrid
 
 class Node:
 	"""docstring for Node"""
@@ -25,7 +26,7 @@ class Node:
 		
 class Astar:
 	"""docstring for Astar"""
-	def __init__(self, grid, start_point_xy, goal_points_xy = [[0,0],[0,0]]):
+	def __init__(self, grid = OccupancyGrid(), start_point_xy, goal_points_xy = [[0,0],[0,0]]):
 		self.grid = grid
 		self.start_point_xy = start_point_xy
 		if not self.goal_points_xy != [[0,0][0,0]]:
@@ -39,15 +40,17 @@ class Astar:
 		self.priorityQueueGoals = PriorityQueue()
 		
 	def prioritize_goals(goals):
-		goal_nodes = []
-		start_node = Node(self.start_point_xy)
-		closest_to_start = PriorityQueue()
+		startNode = Node(self.start_point_xy)
+		goalNodes = []
+		unvisitedNodes = PriorityQueue()
 		for i in range(len(goals)): 
-			goal_nodes.append(Node(goals[i]))
-		for i in range(len(goal_nodes)):
-			for j in range(len(goal_nodes)-i):
-				goal_nodes[i] = self.h(goal_nodes[i],start_node)
-		
+			goalNodes.append(Node(goals[i]))
+		for i in range(len(goalNodes)):
+			goalNodes[i].priority = self.h(nodes[i],startNode)
+			unvisitedNodes.put(goalNodes[i])
+		self.priorityQueueGoals.put(unvisitedNodes.get())
+		for i in range(len(unvisitedNodes)):
+			node = 
 
 	def h(self,node,goal):
 		dx = abs(node.x - goal.x)
