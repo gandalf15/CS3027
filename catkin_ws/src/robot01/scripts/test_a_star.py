@@ -4,7 +4,6 @@
 #from visualization_msgs.msg import Marker
 #from visualization_msgs.msg import MarkerArray
 
-from MapDecomposition import*
 from Astar import*
 from RobotPoseBr import*
 
@@ -43,15 +42,28 @@ def draw_markers(markerPub, markerAry):
 		markerArray.markers.append(m)
 	markerPub.publish(markerArray)
 
+class MapSub:
+	"""docstring for test"""
+	def __init__(self):
+		rospy.init_node('test')
+		rospy.Subscriber('/MapDecomposition', OccupancyGrid, self.get_map)
+		self.grid = None
+		
+	def get_map(self,grid):
+		self.grid = grid
+
+
+
 try:
 
 	print "starting"
-	#decomposition = MapDecomposition()
-	
+	test = MapSub()
+	rospy.sleep(5)
 	print "decomposition is done"
 	#robotBr = RobotPoseBr()
-	mapa = get_map().map
-	astar = Astar(start_point_xy = [-64.00,0.00], goal_points_xy = [[-48.0,0.0],[-52.0,.0]], grid = mapa)
+	print test.grid
+	astar = Astar(start_point_xy = [-64.00,0.00], goal_points_xy = [[-41.0,8.0],[-52.0,.0]], grid = test.grid)
+
 	markerPathPub = rospy.Publisher('/AstarPath', MarkerArray, queue_size=1)
 	#broadcaster = tf.TransformBroadcaster()
 	markerAry = []
@@ -60,7 +72,7 @@ try:
 		addMarker(i,0.1,1,1,i,"/map",marker_id,markerAry)
 		marker_id += 1
 	draw_markers(markerPathPub, markerAry)
-	
+	rospy.spin()
 except KeyboardInterrupt:
 	print "Exiting"
 	pass

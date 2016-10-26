@@ -30,9 +30,13 @@ class Astar:
 		self.prioritizedGoalNodes = PriorityQueue()
 		self.__prioritize_goals(self.startNode, nodeQueue)
 		self.path = []
-		#while not self.prioritizedGoalNodes.empty():
-		#	path = self.find_path(self.grid, self.startNode, self.prioritizedGoalNodes.get())
-		#	self.path.append(path)
+		self.unvisitedQueue = PriorityQueue()
+		self.visitedNodes = []
+		startNode = self.startNode
+		while not self.prioritizedGoalNodes.empty():
+			goalNode = self.prioritizedGoalNodes.get()[1]
+			self.find_path(self.grid, startNode, goalNode)
+			startNode = goalNode
 
 	def __prioritize_goals(self, start_node, goal_queue):
 		remainingNodes = PriorityQueue()
@@ -53,76 +57,72 @@ class Astar:
 		dy = abs(node.position_xy[1] - goal.position_xy[1])
 		return dx+dy
 
-	def find_path(self, grid=OccupancyGrid(), start_point_xy=[], end_point_xy=[]):		
-		unvisitedQueue = PriorityQueue()
-		visitedNodes = []
-		startNode = Node(position_xy=start_point_xy, priority = 0)
-		startNode.g = 0
-		goalNode = Node(position_xy=end_point_xy)
-		unvisitedQueue.put(startNode)
-		path = []
+	def find_path(self, grid, startNode, goalNode):		
+		self.unvisitedQueue = PriorityQueue()	#open list
+		self.visitedNodes = []	#closed list
+		self.unvisitedQueue.put((0,startNode))
 
-		while not unvisitedQueue.empty():
-			currentNode = unvisitedQueue.get()
-			visitedNodes.append(currentNode)
-			#print "cur node pose: ", currentNode.position_xy
-			#print "goal node pose: ", goalNode.position_xy
+		while not self.unvisitedQueue.empty():
+			currentNode = self.unvisitedQueue.get()[1]
+			self.visitedNodes.append(currentNode)
 			if currentNode.position_xy == goalNode.position_xy:
+				# track back parents and get the path
 				print "cur position node: ", currentNode.position_xy
 				print "sratr node pose: ", startNode.position_xy
-				while startNode.position_xy != currentNode.position_xy or currentNode.parent == None:
+				path = []
+				while startNode.position_xy != currentNode.position_xy or currentNode.parent != None:
 					path.insert(0, currentNode.position_xy)
 					currentNode = currentNode.parent
-				return path
-				# track back parents and get the path
-				break
-			for childNode in self.__get_children(currentNode, visitedNodes):
-				newCostG = currentNode.g + 1	# f(g) = 1
-				if childNode not in visitedNodes or newCostG < childNode.g:
-					childNode.g = newCostG
-					childNode.priority = newCostG + self.h(childNode, goalNode)
+				self.path.append(path)
+				print "find_path finished!", self.path
+				return
+			for childNode in self.__get_children(currentNode):
+				newCost = currentNode.cost + 1	# f(g) = 1
+				if childNode not in self.visitedNodes or newCost < childNode.cost:
+					childNode.cost = newCost
+					priority = newCost + self.h(childNode, goalNode)
 					childNode.parent = currentNode
-					unvisitedQueue.put(childNode)
-		print "path does not exist!"
+					self.unvisitedQueue.put((priority,childNode))
+		print "could not find path"
 
 	
-	def __get_children(self, currentNode, visitedNodes):
+	def __get_children(self, currentNode):
 		pose = currentNode.position_xy
 		childNodes = []
-		for i in range(len(visitedNodes)):
-			if visitedNodes[i].position_xy == [pose[0]-1,pose[1]]:
-				childNodes.append(visitedNodes[i])
+		for i in range(len(self.visitedNodes)):
+			if self.visitedNodes[i].position_xy == [pose[0]-1.0,pose[1]]:
+				childNodes.append(self.visitedNodes[i])
 				break
-			elif i == len(visitedNodes)-1:
-				if self.__get_occupancy_value([pose[0]-1,pose[1]]) == 0:
-					childNodes.append(Node([pose[0]-1,pose[1]]))
-		for i in range(len(visitedNodes)):
-			if visitedNodes[i].position_xy == [pose[0]+1,pose[1]]:
-				childNodes.append(visitedNodes[i])
+			elif i == len(self.visitedNodes)-1:
+				if self.__get_occupancy_value([pose[0]-1.0,pose[1]]) == 0:
+					childNodes.append(Node([pose[0]-1.0,pose[1]]))
+		for i in range(len(self.visitedNodes)):
+			if self.visitedNodes[i].position_xy == [pose[0]+1.0,pose[1]]:
+				childNodes.append(self.visitedNodes[i])
 				break
-			elif i == len(visitedNodes)-1:
-				if self.__get_occupancy_value([pose[0]+1,pose[1]]) == 0:
-					childNodes.append(Node([pose[0]+1,pose[1]]))
-		for i in range(len(visitedNodes)):
-			if visitedNodes[i].position_xy == [pose[0],pose[1]-1]:
-				childNodes.append(visitedNodes[i])
+			elif i == len(self.visitedNodes)-1:
+				if self.__get_occupancy_value([pose[0]+1.0,pose[1]]) == 0:
+					childNodes.append(Node([pose[0]+1.0,pose[1]]))
+		for i in range(len(self.visitedNodes)):
+			if self.visitedNodes[i].position_xy == [pose[0],pose[1]-1.0]:
+				childNodes.append(self.visitedNodes[i])
 				break
-			elif i == len(visitedNodes)-1:
-				if self.__get_occupancy_value([pose[0],pose[1]-1]) == 0:
-					childNodes.append(Node([pose[0],pose[1]-1]))
-		for i in range(len(visitedNodes)):
-			if visitedNodes[i].position_xy == [pose[0],pose[1]+1]:
-				childNodes.append(visitedNodes[i])
+			elif i == len(self.visitedNodes)-1:
+				if self.__get_occupancy_value([pose[0],pose[1]-1.0]) == 0:
+					childNodes.append(Node([pose[0],pose[1]-1.0]))
+		for i in range(len(self.visitedNodes)):
+			if self.visitedNodes[i].position_xy == [pose[0],pose[1]+1.0]:
+				childNodes.append(self.visitedNodes[i])
 				break
-			elif i == len(visitedNodes)-1:
-				if self.__get_occupancy_value([pose[0],pose[1]+1]) == 0:
-					childNodes.append(Node([pose[0],pose[1]+1]))
+			elif i == len(self.visitedNodes)-1:
+				if self.__get_occupancy_value([pose[0],pose[1]+1.0]) == 0:
+					childNodes.append(Node([pose[0],pose[1]+1.0]))
 		return childNodes
 
-	def __get_occupancy_value(self,coordinates = []):
+	def __get_occupancy_value(self,coordinates):
 		if coordinates:
-			x = int(coordinates[0]*self.grid.info.resolution - self.grid.info.origin.position.x)
-			y = int(coordinates[1]*self.grid.info.resolution - self.grid.info.origin.position.y)
+			x = int(round((coordinates[0] - self.grid.info.origin.position.x)/self.grid.info.resolution))
+			y = int(round((coordinates[1] - self.grid.info.origin.position.y)/self.grid.info.resolution))
 			index = x+y*self.grid.info.width
 			try:
 				return self.grid.data[index]

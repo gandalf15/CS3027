@@ -70,4 +70,4 @@ class MapDecomposition:
 			for j in range(0,self.loadedMap.info.width,self.grid_cell_size):
 				self.__check_cell(i,j)
 
-#map_grid = MapDecomposition()
+map_grid = MapDecomposition()
