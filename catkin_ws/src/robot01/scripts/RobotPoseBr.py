@@ -7,12 +7,8 @@
 """
 
 import rospy
-#import roslib
 import tf
 from nav_msgs.msg import Odometry
-#from geometry_msgs.msg import PointStamped
-#from std_msgs.msg import Header
-#from geometry_msgs.msg import Point
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
 
@@ -100,4 +96,4 @@ class RobotPoseBr:
 	def handle_real_position(self,odometryData):
 		self.realPose = odometryData
 
-robotBr = RobotPoseBr()
+#robotBr = RobotPoseBr()
