@@ -13,46 +13,40 @@ from nav_msgs.msg import OccupancyGrid
 
 class Node:
 	"""docstring for Node"""
-	def __init__(self, position_xy = [], parent = None, priority = None):
+	def __init__(self, position_xy,cost = 0, parent = None):
 		self.position_xy = position_xy
-		self.g = maxint
+		self.cost = cost
 		self.parent = parent
-		self.priority = priority
 
-	def __cmp__(self, other):
-		return cmp(self.priority, other.priority)
 		
 class Astar:
 	"""docstring for Astar"""
-	def __init__(self,start_point_xy = [], goal_points_xy = [], grid = OccupancyGrid()):
+	def __init__(self,start_point_xy, goal_points_xy, grid):
 		self.grid = grid
-		self.start_point_xy = start_point_xy
-		if goal_points_xy:
-			pass
-		else:
-			print "No goals set!"
-			return 1
-		self.prioritizedGoals= []
-		goalNodes = PriorityQueue()
+		self.startNode = Node(start_point_xy)
+		nodeQueue = PriorityQueue()
 		for i in range(len(goal_points_xy)): 
-			goalNodes.put(Node(goal_points_xy[i]))
-		self.__prioritize_nodes_heur(Node(self.start_point_xy), goalNodes)
-		self.path = self.find_path(self.grid,self.start_point_xy,self.prioritizedGoals[0])
-		
-	def __prioritize_nodes_heur(self, start_node, goal_nodes = PriorityQueue()):
-		leftNodes = PriorityQueue()
-		if goal_nodes.qsize() > 1:
-			for i in range(goal_nodes.qsize()):
-				node = goal_nodes.get() 
-				node.priority = self.h(node,start_node)
-				leftNodes.put(node)
-			closestNode = leftNodes.get()
-			self.prioritizedGoals.append(closestNode.position_xy)
-			self.__prioritize_nodes_heur(closestNode,leftNodes)
+			nodeQueue.put((0,Node(goal_points_xy[i])))
+		self.prioritizedGoalNodes = PriorityQueue()
+		self.__prioritize_goals(self.startNode, nodeQueue)
+		self.path = []
+		#while not self.prioritizedGoalNodes.empty():
+		#	path = self.find_path(self.grid, self.startNode, self.prioritizedGoalNodes.get())
+		#	self.path.append(path)
+
+	def __prioritize_goals(self, start_node, goal_queue):
+		remainingNodes = PriorityQueue()
+		if goal_queue.qsize() > 1:
+			for i in range(goal_queue.qsize()):
+				node = goal_queue.get()[1]
+				priority = self.h(node,start_node)
+				remainingNodes.put((priority,node))
+			closestNode = remainingNodes.get()
+			self.prioritizedGoalNodes.put(closestNode)
+			self.__prioritize_goals(closestNode[1],remainingNodes)
 		else:
-			lastNode = goal_nodes.get()
-			lastNode.priority = maxint
-			self.prioritizedGoals.append(lastNode.position_xy)
+			lastNode = goal_queue.get()[1]
+			self.prioritizedGoalNodes.put((maxint,lastNode))
 
 	def h(self,node,goal):
 		dx = abs(node.position_xy[0] - goal.position_xy[0])
@@ -127,8 +121,8 @@ class Astar:
 
 	def __get_occupancy_value(self,coordinates = []):
 		if coordinates:
-			x = int(coordinates[0]*10 - self.grid.info.origin.position.x)
-			y = int(coordinates[1]*10 - self.grid.info.origin.position.y)
+			x = int(coordinates[0]*self.grid.info.resolution - self.grid.info.origin.position.x)
+			y = int(coordinates[1]*self.grid.info.resolution - self.grid.info.origin.position.y)
 			index = x+y*self.grid.info.width
 			try:
 				return self.grid.data[index]
@@ -138,9 +132,10 @@ class Astar:
 
 """
 try:
-	astar = Astar(start_point_xy = [-10,-10], goal_points_xy=[[-10,-11],[-2,2],[3,8],[20,80],[1,1]])
+	astar = Astar(start_point_xy = [-10,-10], goal_points_xy=[[-10,-11],[-2,2],[3,8],[20,80],[1,1]], grid=OccupancyGrid())
 	print "job done"
-	print astar.prioritizedGoals
+	while not astar.prioritizedGoalNodes.empty():
+		print astar.prioritizedGoalNodes.get()[1].position_xy
 except KeyboardInterrupt:
 	pass
 
