@@ -121,26 +121,21 @@ class Astar:
 		grid_cell_size = int(grid_cell_size)
 		return grid_cell_size
 
-	def __check_cell(self,i,j):
+	def __check_cell(self,index):
 		row_jumper = 0
-		for k in range(self.grid_cell_size):
-			for l in range(self.grid_cell_size):
-				try:
-					if (self.grid.data[i+j+l+row_jumper] !=0 or j == self.grid.info.width-1):
-						self.grid.data.append(100)
-						return
-					elif(l == self.grid_cell_size-1):
-						row_jumper = row_jumper + self.grid.info.width
-				except IndexError:
-					#self.grid.data.append(100)
-					return
-		self.grid.data.append(0)
-
-	def get_decomposition(self):
-		step = self.grid.info.width*self.grid_cell_size
-		for i in range(0,len(self.loadedMap.data), step):
-			for j in range(0,self.loadedMap.info.width,self.grid_cell_size):
-				self.__check_cell(i,j)
+		try:
+			beginIndex = (index-self.grid_cell_size/2)-self.grid.info.width*self.grid_cell_size/2
+			for i in range(self.grid_cell_size):
+				for j in range(self.grid_cell_size):
+						if (self.grid.data[beginIndex+i+j+row_jumper] !=0 or j == self.grid.info.width-1):	#check if this is end of line shomehow
+							self.grid.data.append(100)
+							return
+						elif(l == self.grid_cell_size-1):
+							row_jumper = row_jumper + self.grid.info.width
+		except IndexError:
+			#self.grid.data.append(100)
+			return
+			
 
 
 """
