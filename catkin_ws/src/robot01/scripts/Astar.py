@@ -31,12 +31,14 @@ class Astar:
 		self.__prioritize_goals(self.startNode, nodeQueue)
 		self.path = []
 		self.unvisitedQueue = PriorityQueue()
-		self.visitedNodes = []
 		startNode = self.startNode
 		while not self.prioritizedGoalNodes.empty():
 			goalNode = self.prioritizedGoalNodes.get()[1]
-			self.find_path(self.grid, startNode, goalNode)
+			self.find_path((startNode.position_xy[0],startNode.position_xy[1]), (goalNode.position_xy[0],goalNode.position_xy[1]))
 			startNode = goalNode
+		print self.path
+		self.robot_dimensions_xyz = rospy.get_param('/robot/dimensions_xyz', [1.0,1.0,0.25])
+		self.grid_cell_size = self.__calc_cell_size()
 
 	def __prioritize_goals(self, start_node, goal_queue):
 		remainingNodes = PriorityQueue()
@@ -57,67 +59,50 @@ class Astar:
 		dy = abs(node.position_xy[1] - goal.position_xy[1])
 		return dx+dy
 
-	def find_path(self, grid, startNode, goalNode):		
-		self.unvisitedQueue = PriorityQueue()	#open list
-		self.visitedNodes = []	#closed list
-		self.unvisitedQueue.put((0,startNode))
+	def heur(self,child,goal):
+		dx = abs(child[0] - goal[0])
+		dy = abs(child[1] - goal[1])
+		return dx+dy
 
-		while not self.unvisitedQueue.empty():
-			currentNode = self.unvisitedQueue.get()[1]
-			self.visitedNodes.append(currentNode)
-			if currentNode.position_xy == goalNode.position_xy:
-				# track back parents and get the path
-				print "cur position node: ", currentNode.position_xy
-				print "sratr node pose: ", startNode.position_xy
-				path = []
-				while startNode.position_xy != currentNode.position_xy or currentNode.parent != None:
-					path.insert(0, currentNode.position_xy)
-					currentNode = currentNode.parent
+	def find_path(self, start, goal):		
+		unvisitedQueue = PriorityQueue()	#open list
+		unvisitedQueue.put((0,start))
+		parents = {}
+		cost = {}
+		parents[start] = None
+		cost[start] = 0
+		path = []
+		while not unvisitedQueue.empty():
+			currentPose = unvisitedQueue.get()[1]
+			if currentPose == goal:
+				while currentPose != start:
+					path.insert(0, [currentPose[0],currentPose[1]])
+					currentPose = parents[currentPose]
 				self.path.append(path)
-				print "find_path finished!", self.path
 				return
-			for childNode in self.__get_children(currentNode):
-				newCost = currentNode.cost + 1	# f(g) = 1
-				if childNode not in self.visitedNodes or newCost < childNode.cost:
-					childNode.cost = newCost
-					priority = newCost + self.h(childNode, goalNode)
-					childNode.parent = currentNode
-					self.unvisitedQueue.put((priority,childNode))
-		print "could not find path"
+
+			for child in self.__get_children(currentPose, parents[currentPose]):
+				newCost = cost[currentPose] + 1	# f(g) = 1
+				if child not in cost or newCost < cost[child]:
+					cost[child] = newCost
+					priority = newCost + self.heur(child, goal)
+					parents[child] = currentPose
+					unvisitedQueue.put((priority,child))
+		print "Could not find path!!!"
 
 	
-	def __get_children(self, currentNode):
-		pose = currentNode.position_xy
-		childNodes = []
-		for i in range(len(self.visitedNodes)):
-			if self.visitedNodes[i].position_xy == [pose[0]-1.0,pose[1]]:
-				childNodes.append(self.visitedNodes[i])
-				break
-			elif i == len(self.visitedNodes)-1:
-				if self.__get_occupancy_value([pose[0]-1.0,pose[1]]) == 0:
-					childNodes.append(Node([pose[0]-1.0,pose[1]]))
-		for i in range(len(self.visitedNodes)):
-			if self.visitedNodes[i].position_xy == [pose[0]+1.0,pose[1]]:
-				childNodes.append(self.visitedNodes[i])
-				break
-			elif i == len(self.visitedNodes)-1:
-				if self.__get_occupancy_value([pose[0]+1.0,pose[1]]) == 0:
-					childNodes.append(Node([pose[0]+1.0,pose[1]]))
-		for i in range(len(self.visitedNodes)):
-			if self.visitedNodes[i].position_xy == [pose[0],pose[1]-1.0]:
-				childNodes.append(self.visitedNodes[i])
-				break
-			elif i == len(self.visitedNodes)-1:
-				if self.__get_occupancy_value([pose[0],pose[1]-1.0]) == 0:
-					childNodes.append(Node([pose[0],pose[1]-1.0]))
-		for i in range(len(self.visitedNodes)):
-			if self.visitedNodes[i].position_xy == [pose[0],pose[1]+1.0]:
-				childNodes.append(self.visitedNodes[i])
-				break
-			elif i == len(self.visitedNodes)-1:
-				if self.__get_occupancy_value([pose[0],pose[1]+1.0]) == 0:
-					childNodes.append(Node([pose[0],pose[1]+1.0]))
-		return childNodes
+	def __get_children(self, pose, parentPose):
+		children = []
+		accuracy = 1
+		if self.__get_occupancy_value([pose[0]-accuracy,pose[1]]) == 0 and (pose[0]-accuracy,pose[1]) != parentPose:
+			children.append((pose[0]-accuracy,pose[1]))
+		if self.__get_occupancy_value([pose[0]+accuracy,pose[1]]) == 0 and (pose[0]+accuracy,pose[1]) != parentPose:
+			children.append((pose[0]+accuracy,pose[1]))
+		if self.__get_occupancy_value([pose[0],pose[1]-accuracy]) == 0 and (pose[0],pose[1]-accuracy) != parentPose:
+			children.append((pose[0],pose[1]-accuracy))
+		if self.__get_occupancy_value([pose[0],pose[1]+accuracy]) == 0 and (pose[0],pose[1]+accuracy) != parentPose:
+			children.append((pose[0],pose[1]+accuracy))
+		return children
 
 	def __get_occupancy_value(self,coordinates):
 		if coordinates:
@@ -128,6 +113,34 @@ class Astar:
 				return self.grid.data[index]
 			except IndexError:
 				return 1
+
+
+	def __calc_cell_size(self):
+		hypoteamus = math.hypot((self.robot_dimensions_xyz[0]/2.0),(self.robot_dimensions_xyz[1]/2.0))
+		grid_cell_size = math.ceil(hypoteamus / self.grid.info.resolution)
+		grid_cell_size = int(grid_cell_size)
+		return grid_cell_size
+
+	def __check_cell(self,i,j):
+		row_jumper = 0
+		for k in range(self.grid_cell_size):
+			for l in range(self.grid_cell_size):
+				try:
+					if (self.grid.data[i+j+l+row_jumper] !=0 or j == self.grid.info.width-1):
+						self.grid.data.append(100)
+						return
+					elif(l == self.grid_cell_size-1):
+						row_jumper = row_jumper + self.loadedMap.info.width
+				except IndexError:
+					self.grid.data.append(100)
+					return
+		self.grid.data.append(0)
+
+	def get_decomposition(self):
+		step = self.loadedMap.info.width*self.grid_cell_size
+		for i in range(0,len(self.loadedMap.data), step):
+			for j in range(0,self.loadedMap.info.width,self.grid_cell_size):
+				self.__check_cell(i,j)
 
 
 """

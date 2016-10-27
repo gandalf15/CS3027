@@ -96,4 +96,4 @@ class RobotPoseBr:
 	def handle_real_position(self,odometryData):
 		self.realPose = odometryData
 
-#robotBr = RobotPoseBr()
+robotBr = RobotPoseBr()

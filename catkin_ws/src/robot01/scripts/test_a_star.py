@@ -4,8 +4,11 @@
 #from visualization_msgs.msg import Marker
 #from visualization_msgs.msg import MarkerArray
 
+from nav_msgs.srv import GetMap
 from Astar import*
-from RobotPoseBr import*
+#from RobotPoseBr import*
+from visualization_msgs.msg import Marker
+from visualization_msgs.msg import MarkerArray
 
 def addMarker(position,r,g,b,namespace,frame_id,marker_id,markerAry):
 	marker = Marker()
@@ -17,8 +20,8 @@ def addMarker(position,r,g,b,namespace,frame_id,marker_id,markerAry):
 	marker.pose.position.x = position[0]
 	marker.pose.position.y = position[1]
 	marker.pose.orientation.w = 1
-	marker.scale.x = 0.1
-	marker.scale.y = 0.1
+	marker.scale.x = 0.2
+	marker.scale.y = 0.2
 	marker.scale.z = 0.2
 	marker.color.r = r
 	marker.color.g = g
@@ -37,41 +40,33 @@ def get_map():
 		print "Service call failed: %s"%e
 
 def draw_markers(markerPub, markerAry):
-	markerArray = MarkerArray()
+	Array = MarkerArray()
 	for m in markerAry:
-		markerArray.markers.append(m)
-	markerPub.publish(markerArray)
-
-class MapSub:
-	"""docstring for test"""
-	def __init__(self):
-		rospy.init_node('test')
-		rospy.Subscriber('/MapDecomposition', OccupancyGrid, self.get_map)
-		self.grid = None
-		
-	def get_map(self,grid):
-		self.grid = grid
-
-
+		Array.markers.append(m)
+	markerPub.publish(Array)
 
 try:
-
+	rospy.init_node('test')
 	print "starting"
-	test = MapSub()
-	rospy.sleep(5)
+	#test = MapSub()
+	#rospy.sleep(5)
 	print "decomposition is done"
 	#robotBr = RobotPoseBr()
-	print test.grid
-	astar = Astar(start_point_xy = [-64.00,0.00], goal_points_xy = [[-41.0,8.0],[-52.0,.0]], grid = test.grid)
+	#print test.grid
+	
+	astar = Astar(start_point_xy = [-64.00,0.00], goal_points_xy = [[-1.0,37.0],[-52.0,.0]], grid = get_map().map)
 
-	markerPathPub = rospy.Publisher('/AstarPath', MarkerArray, queue_size=1)
+	markerPathPub = rospy.Publisher('/AstarPath', MarkerArray, queue_size=100)
 	#broadcaster = tf.TransformBroadcaster()
 	markerAry = []
 	marker_id = 0
-	for i in astar.path:
-		addMarker(i,0.1,1,1,i,"/map",marker_id,markerAry)
-		marker_id += 1
-	draw_markers(markerPathPub, markerAry)
+	for i in range(len(astar.path)):
+		for j in astar.path[i]:
+			markerAry = addMarker(j,0.1,1,1,"lol","/map",marker_id,markerAry)
+			marker_id += 1
+	while not rospy.is_shutdown():
+		draw_markers(markerPathPub, markerAry)
+		rospy.sleep(2)
 	rospy.spin()
 except KeyboardInterrupt:
 	print "Exiting"
