@@ -93,7 +93,7 @@ class Astar:
 	
 	def __get_children(self, pose, parentPose):
 		children = []
-		accuracy = 1
+		accuracy = self.grid_cell_size
 		if self.__get_occupancy_value([pose[0]-accuracy,pose[1]]) == 0 and (pose[0]-accuracy,pose[1]) != parentPose:
 			children.append((pose[0]-accuracy,pose[1]))
 		if self.__get_occupancy_value([pose[0]+accuracy,pose[1]]) == 0 and (pose[0]+accuracy,pose[1]) != parentPose:
@@ -130,14 +130,14 @@ class Astar:
 						self.grid.data.append(100)
 						return
 					elif(l == self.grid_cell_size-1):
-						row_jumper = row_jumper + self.loadedMap.info.width
+						row_jumper = row_jumper + self.grid.info.width
 				except IndexError:
-					self.grid.data.append(100)
+					#self.grid.data.append(100)
 					return
 		self.grid.data.append(0)
 
 	def get_decomposition(self):
-		step = self.loadedMap.info.width*self.grid_cell_size
+		step = self.grid.info.width*self.grid_cell_size
 		for i in range(0,len(self.loadedMap.data), step):
 			for j in range(0,self.loadedMap.info.width,self.grid_cell_size):
 				self.__check_cell(i,j)
