@@ -30,6 +30,8 @@ class Astar:
 		self.prioritizedGoalNodes = PriorityQueue()
 		self.__prioritize_goals(self.startNode, nodeQueue)
 		self.path = []
+		self.robot_dimensions_xyz = rospy.get_param('/robot/dimensions_xyz', [1.0,1.0,0.25])
+		self.grid_cell_size = self.__calc_cell_size()
 		self.unvisitedQueue = PriorityQueue()
 		startNode = self.startNode
 		while not self.prioritizedGoalNodes.empty():
@@ -37,8 +39,6 @@ class Astar:
 			self.find_path((startNode.position_xy[0],startNode.position_xy[1]), (goalNode.position_xy[0],goalNode.position_xy[1]))
 			startNode = goalNode
 		print self.path
-		self.robot_dimensions_xyz = rospy.get_param('/robot/dimensions_xyz', [1.0,1.0,0.25])
-		self.grid_cell_size = self.__calc_cell_size()
 
 	def __prioritize_goals(self, start_node, goal_queue):
 		remainingNodes = PriorityQueue()
@@ -110,10 +110,9 @@ class Astar:
 			y = int(round((coordinates[1] - self.grid.info.origin.position.y)/self.grid.info.resolution))
 			index = x+y*self.grid.info.width
 			try:
-				return self.grid.data[index]
+				return self.__check_cell(index)#self.grid.data[index]
 			except IndexError:
 				return 1
-
 
 	def __calc_cell_size(self):
 		hypoteamus = math.hypot((self.robot_dimensions_xyz[0]/2.0),(self.robot_dimensions_xyz[1]/2.0))
@@ -123,19 +122,18 @@ class Astar:
 
 	def __check_cell(self,index):
 		row_jumper = 0
-		try:
-			beginIndex = (index-self.grid_cell_size/2)-self.grid.info.width*self.grid_cell_size/2
-			for i in range(self.grid_cell_size):
-				for j in range(self.grid_cell_size):
-						if (self.grid.data[beginIndex+i+j+row_jumper] !=0 or j == self.grid.info.width-1):	#check if this is end of line shomehow
-							self.grid.data.append(100)
-							return
-						elif(l == self.grid_cell_size-1):
-							row_jumper = row_jumper + self.grid.info.width
-		except IndexError:
-			#self.grid.data.append(100)
-			return
-			
+		beginIndex = (index-self.grid_cell_size/2)-self.grid.info.width*self.grid_cell_size/2
+		lineNo = math.ceil(beginIndex/self.grid.info.width-1.0)
+		for i in range(self.grid_cell_size):
+			for j in range(self.grid_cell_size):
+				try:
+					if (self.grid.data[beginIndex+j+row_jumper] !=0 or lineNo != math.ceil((beginIndex+j)/self.grid.info.width-1.0)):	#check if this is end of line shomehow
+						return 100
+					elif(j == self.grid_cell_size-1):
+						row_jumper = row_jumper + self.grid.info.width
+				except IndexError:
+					return 1
+		return 0
 
 
 """

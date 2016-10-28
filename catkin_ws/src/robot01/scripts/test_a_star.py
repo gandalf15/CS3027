@@ -54,8 +54,8 @@ try:
 	#robotBr = RobotPoseBr()
 	#print test.grid
 	
-	astar = Astar(start_point_xy = [-64.00,0.00], goal_points_xy = [[-1.0,37.0],[-52.0,.0]], grid = get_map().map)
-
+	astar = Astar(start_point_xy = [-64.00,0.00], goal_points_xy = [[-52.0,.0]], grid = get_map().map)
+	# [-1.0,37.0],
 	markerPathPub = rospy.Publisher('/AstarPath', MarkerArray, queue_size=100)
 	#broadcaster = tf.TransformBroadcaster()
 	markerAry = []
