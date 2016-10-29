@@ -9,26 +9,37 @@ import math
 import rospy
 from sys import maxint
 from Queue import PriorityQueue
-from nav_msgs.msg import OccupancyGrid
+from visualization_msgs.msg import Marker
+from visualization_msgs.msg import MarkerArray
 		
 class Astar:
 	"""docstring for Astar"""
 	def __init__(self,start_point_xy, goal_points_xy, grid):
+		rospy.init_node('test')
+		rospy.loginfo("Starting A star")
+		self.markerPathPub = rospy.Publisher('/AstarPath', MarkerArray, queue_size=100)
 		self.grid = grid
+		self.startPose = None
+		#self.robot_dimensions_xyz = rospy.get_param('/robot/dimensions_xyz', [1.0,1.0,0.25])
+		self.unvisitedQueue = PriorityQueue()
+		self.path = []
+		self.prioritizedGoals = []
+		self.markerAry = []
+		self.markerId = 0
+		self.reset_path(start_point_xy,goal_points_xy)
+
+	def reset_path(self, start_point_xy, goal_points_xy):
+		self.path = []
+		self.prioritizedGoals = []
 		self.startPose = (round(start_point_xy[0]),round(start_point_xy[1]))
 		poseQueue = PriorityQueue()
 		for i in range(len(goal_points_xy)): 
 			poseQueue.put((0,(round(goal_points_xy[i][0]),round(goal_points_xy[i][1]))))
-		self.prioritizedGoals = []
 		self.__prioritize_goals(self.startPose, poseQueue)
-		self.robot_dimensions_xyz = rospy.get_param('/robot/dimensions_xyz', [1.0,1.0,0.25])
-		self.unvisitedQueue = PriorityQueue()
-		self.path = []
 		startPose = self.startPose
 		for nextPose in self.prioritizedGoals:
 			self.find_path(startPose, nextPose)
 			startPose = nextPose
-		print self.path
 
 	def __prioritize_goals(self, start_pose, goal_queue):
 		remainingPose = PriorityQueue()
@@ -57,6 +68,7 @@ class Astar:
 		parents[start] = None
 		cost[start] = 0
 		path = []
+		self.clear_markers()
 		while not unvisitedQueue.empty():
 			currentPose = unvisitedQueue.get()[1]
 			if currentPose == goal:
@@ -64,6 +76,10 @@ class Astar:
 					path.insert(0, [currentPose[0],currentPose[1]])
 					currentPose = parents[currentPose]
 				self.path.append(path)
+				print self.path
+				for i in range(len(self.path)):
+					for j in self.path[i]:
+						self.__addMarker(j,1,0.1,0.1,"AstarPath","/map")
 				return
 
 			for child in self.__get_children(currentPose, parents[currentPose]):
@@ -112,16 +128,38 @@ class Astar:
 					return 1
 		return 0
 
+	def __addMarker(self,position,r,g,b,namespace,frame_id,):
+		marker = Marker()
+		marker.header.frame_id = frame_id
+		marker.ns = namespace
+		marker.id = self.markerId
+		marker.type = marker.CUBE
+		marker.action = marker.ADD
+		marker.pose.position.x = position[0]
+		marker.pose.position.y = position[1]
+		marker.pose.orientation.w = 1
+		marker.scale.x = 0.5
+		marker.scale.y = 0.5
+		marker.scale.z = 0.5
+		marker.color.r = r
+		marker.color.g = g
+		marker.color.b = b
+		marker.color.a = 1
+		self.markerAry.append(marker)
+		self.markerId += 1
 
-"""
-try:
-	astar = Astar(start_point_xy = [-10,-10], goal_points_xy=[[-10,-11],[-2,2],[3,8],[20,80],[1,1]], grid=OccupancyGrid())
-	print "job done"
-	while not astar.prioritizedGoalNodes.empty():
-		print astar.prioritizedGoalNodes.get()[1].position_xy
-except KeyboardInterrupt:
-	pass
+	def draw_markers(self):
+		Array = MarkerArray()
+		for m in self.markerAry:
+			Array.markers.append(m)
+		self.markerPathPub.publish(Array)
+		self.markerId = 0
 
-w, h = 3, 2
-Matrix = [[0 for x in range(w)] for y in range(h)]
-"""
+	def clear_markers(self):
+		Array=MarkerArray()
+		for m in self.markerAry:
+			m.action = m.DELETE
+			Array.markers.append(m)
+		self.markerPathPub.publish(Array)
+		self.markerId = 0
+		self.markerAry = []
