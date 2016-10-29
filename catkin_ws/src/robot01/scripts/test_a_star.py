@@ -20,9 +20,9 @@ def addMarker(position,r,g,b,namespace,frame_id,marker_id,markerAry):
 	marker.pose.position.x = position[0]
 	marker.pose.position.y = position[1]
 	marker.pose.orientation.w = 1
-	marker.scale.x = 0.2
-	marker.scale.y = 0.2
-	marker.scale.z = 0.2
+	marker.scale.x = 0.5
+	marker.scale.y = 0.5
+	marker.scale.z = 0.5
 	marker.color.r = r
 	marker.color.g = g
 	marker.color.b = b
@@ -54,7 +54,7 @@ try:
 	#robotBr = RobotPoseBr()
 	#print test.grid
 	
-	astar = Astar(start_point_xy = [-64.00,0.00], goal_points_xy = [[-52.0,.0]], grid = get_map().map)
+	astar = Astar(start_point_xy = [-64.00,0.00], goal_points_xy = [[52.64,-21.78],[-1.0,37.0],[-52.0,0.0]], grid = get_map().map)
 	# [-1.0,37.0],
 	markerPathPub = rospy.Publisher('/AstarPath', MarkerArray, queue_size=100)
 	#broadcaster = tf.TransformBroadcaster()
@@ -62,7 +62,7 @@ try:
 	marker_id = 0
 	for i in range(len(astar.path)):
 		for j in astar.path[i]:
-			markerAry = addMarker(j,0.1,1,1,"lol","/map",marker_id,markerAry)
+			markerAry = addMarker(j,1,0.1,0.1,"lol","/map",marker_id,markerAry)
 			marker_id += 1
 	while not rospy.is_shutdown():
 		draw_markers(markerPathPub, markerAry)

@@ -10,54 +10,39 @@ import rospy
 from sys import maxint
 from Queue import PriorityQueue
 from nav_msgs.msg import OccupancyGrid
-
-class Node:
-	"""docstring for Node"""
-	def __init__(self, position_xy,cost = 0, parent = None):
-		self.position_xy = position_xy
-		self.cost = cost
-		self.parent = parent
-
 		
 class Astar:
 	"""docstring for Astar"""
 	def __init__(self,start_point_xy, goal_points_xy, grid):
 		self.grid = grid
-		self.startNode = Node(start_point_xy)
-		nodeQueue = PriorityQueue()
+		self.startPose = (round(start_point_xy[0]),round(start_point_xy[1]))
+		poseQueue = PriorityQueue()
 		for i in range(len(goal_points_xy)): 
-			nodeQueue.put((0,Node(goal_points_xy[i])))
-		self.prioritizedGoalNodes = PriorityQueue()
-		self.__prioritize_goals(self.startNode, nodeQueue)
-		self.path = []
+			poseQueue.put((0,(round(goal_points_xy[i][0]),round(goal_points_xy[i][1]))))
+		self.prioritizedGoals = []
+		self.__prioritize_goals(self.startPose, poseQueue)
 		self.robot_dimensions_xyz = rospy.get_param('/robot/dimensions_xyz', [1.0,1.0,0.25])
-		self.grid_cell_size = self.__calc_cell_size()
 		self.unvisitedQueue = PriorityQueue()
-		startNode = self.startNode
-		while not self.prioritizedGoalNodes.empty():
-			goalNode = self.prioritizedGoalNodes.get()[1]
-			self.find_path((startNode.position_xy[0],startNode.position_xy[1]), (goalNode.position_xy[0],goalNode.position_xy[1]))
-			startNode = goalNode
+		self.path = []
+		startPose = self.startPose
+		for nextPose in self.prioritizedGoals:
+			self.find_path(startPose, nextPose)
+			startPose = nextPose
 		print self.path
 
-	def __prioritize_goals(self, start_node, goal_queue):
-		remainingNodes = PriorityQueue()
+	def __prioritize_goals(self, start_pose, goal_queue):
+		remainingPose = PriorityQueue()
 		if goal_queue.qsize() > 1:
 			for i in range(goal_queue.qsize()):
-				node = goal_queue.get()[1]
-				priority = self.h(node,start_node)
-				remainingNodes.put((priority,node))
-			closestNode = remainingNodes.get()
-			self.prioritizedGoalNodes.put(closestNode)
-			self.__prioritize_goals(closestNode[1],remainingNodes)
+				pose = goal_queue.get()[1]
+				priority = self.heur(pose,start_pose)
+				remainingPose.put((priority,pose))
+			closestPose = remainingPose.get()
+			self.prioritizedGoals.append(closestPose[1])
+			self.__prioritize_goals(closestPose[1],remainingPose)
 		else:
-			lastNode = goal_queue.get()[1]
-			self.prioritizedGoalNodes.put((maxint,lastNode))
-
-	def h(self,node,goal):
-		dx = abs(node.position_xy[0] - goal.position_xy[0])
-		dy = abs(node.position_xy[1] - goal.position_xy[1])
-		return dx+dy
+			lastPose = goal_queue.get()[1]
+			self.prioritizedGoals.append(lastPose)
 
 	def heur(self,child,goal):
 		dx = abs(child[0] - goal[0])
@@ -93,7 +78,7 @@ class Astar:
 	
 	def __get_children(self, pose, parentPose):
 		children = []
-		accuracy = self.grid_cell_size
+		accuracy = 1
 		if self.__get_occupancy_value([pose[0]-accuracy,pose[1]]) == 0 and (pose[0]-accuracy,pose[1]) != parentPose:
 			children.append((pose[0]-accuracy,pose[1]))
 		if self.__get_occupancy_value([pose[0]+accuracy,pose[1]]) == 0 and (pose[0]+accuracy,pose[1]) != parentPose:
@@ -109,27 +94,19 @@ class Astar:
 			x = int(round((coordinates[0] - self.grid.info.origin.position.x)/self.grid.info.resolution))
 			y = int(round((coordinates[1] - self.grid.info.origin.position.y)/self.grid.info.resolution))
 			index = x+y*self.grid.info.width
-			try:
-				return self.__check_cell(index)#self.grid.data[index]
-			except IndexError:
-				return 1
-
-	def __calc_cell_size(self):
-		hypoteamus = math.hypot((self.robot_dimensions_xyz[0]/2.0),(self.robot_dimensions_xyz[1]/2.0))
-		grid_cell_size = math.ceil(hypoteamus / self.grid.info.resolution)
-		grid_cell_size = int(grid_cell_size)
-		return grid_cell_size
+			return self.__check_cell(index)
 
 	def __check_cell(self,index):
 		row_jumper = 0
-		beginIndex = (index-self.grid_cell_size/2)-self.grid.info.width*self.grid_cell_size/2
+		beginIndex = (index-5)-self.grid.info.width*5
 		lineNo = math.ceil(beginIndex/self.grid.info.width-1.0)
-		for i in range(self.grid_cell_size):
-			for j in range(self.grid_cell_size):
+		for i in range(10):
+			for j in range(10):
 				try:
+					#print "new line number: ",math.ceil((beginIndex+j)/self.grid.info.width-1.0)
 					if (self.grid.data[beginIndex+j+row_jumper] !=0 or lineNo != math.ceil((beginIndex+j)/self.grid.info.width-1.0)):	#check if this is end of line shomehow
 						return 100
-					elif(j == self.grid_cell_size-1):
+					elif(j == 9):
 						row_jumper = row_jumper + self.grid.info.width
 				except IndexError:
 					return 1
