@@ -15,12 +15,11 @@ from visualization_msgs.msg import MarkerArray
 class Astar:
 	"""docstring for Astar"""
 	def __init__(self,start_point_xy, goal_points_xy, grid):
-		rospy.init_node('test')
+		rospy.init_node('Astar')
 		rospy.loginfo("Starting A star")
 		self.markerPathPub = rospy.Publisher('/AstarPath', MarkerArray, queue_size=100)
 		self.grid = grid
 		self.startPose = None
-		#self.robot_dimensions_xyz = rospy.get_param('/robot/dimensions_xyz', [1.0,1.0,0.25])
 		self.unvisitedQueue = PriorityQueue()
 		self.path = []
 		self.prioritizedGoals = []
