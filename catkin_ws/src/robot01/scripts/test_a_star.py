@@ -33,11 +33,12 @@ class Controller:
 		self.dimensions_xyz = self.setDimensionsParam()
 		self.odomData = Odometry()
 		self.path = path
-		self.goalPose = self.path.pop(0)
-		self.goalStamped = PointStamped()
+		self.goalMapPose = self.path.pop(0)
+		self.goalBasePose = [1.0,1.0]
 		self.goalTheta = 0.0
 		self.tf = tf.TransformListener()
 		self.currentOdomPose = [0.0,0.0]
+		self.currentMapPose = [0.0,0.0]
 		self.lastOdomTime = 0
 		self.blocked = False
 
@@ -70,28 +71,41 @@ class Controller:
 		self.odomData = data
 		self.currentOdomPose[0] = round(data.pose.pose.position.x)
 		self.currentOdomPose[1] = round(data.pose.pose.position.y)
+
 		try:
 			ps = PointStamped()
-			ps.point.x = self.goalPose[0]
-			ps.point.y = self.goalPose[1]
+			ps.point.x = self.goalMapPose[0]
+			ps.point.y = self.goalMapPose[1]
 			ps.header.stamp = self.tf.getLatestCommonTime("/map","/base_link")
 			ps.header.frame_id = "/map"
-			self.goalStamped = self.tf.transformPoint("/base_link", ps)
-			self.goalTheta = math.atan2(self.goalStamped.point.y, self.goalStamped.point.x)
+			newPs = self.tf.transformPoint("/base_link", ps)
+			self.goalBasePose = [newPs.point.x,newPs.point.y]
+			self.goalTheta = math.atan2(newPs.point.y, newPs.point.x)
 		except:
 			pass
-
 
 	def drive(self):
 		#print "I am in drive"
 		if (not self.blocked):
-			if (self.currentOdomPose != self.goalPose):
+			if (abs(self.goalBasePose[0])>0.5 or abs(self.goalBasePose[1])>0.5):
 				self.cmd_vel.angular.z = self.goalTheta
 				self.ctl_vel.publish(self.cmd_vel)
 				self.cmd_vel.linear.x = 0.5
 			else:
 				print "point reached"
-				self.goalPose = self.path.pop(0)
+				self.goalMapPose = self.path.pop(0)
+				try:
+					ps = PointStamped()
+					ps.point.x = self.goalMapPose[0]
+					ps.point.y = self.goalMapPose[1]
+					ps.header.stamp = self.tf.getLatestCommonTime("/map","/base_link")
+					ps.header.frame_id = "/map"
+					newPs = self.tf.transformPoint("/base_link", ps)
+					self.goalBasePose = [newPs.point.x,newPs.point.y]
+					self.goalTheta = math.atan2(newPs.point.y, newPs.point.x)
+				except:
+					print "exception while TF point"
+					pass
 				self.cmd_vel.angular.z = 0.0
 				self.cmd_vel.linear.x = 0.0
 		else:
