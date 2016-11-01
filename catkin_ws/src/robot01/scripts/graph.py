@@ -45,7 +45,7 @@ class Graph:
 
 	def get_node(self, pose):
 		if pose in self.nodes:
-			return self.nodes[node]
+			return self.nodes[pose]
 		else:
 			return None
 

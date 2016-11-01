@@ -25,7 +25,9 @@ def expand_occupancy_matrix(matrix,expand_value = 1):
 			if matrix[row][col] == True:
 				for expRow in range(expand_value*2+1):
 					for expCol in range(expand_value*2+1):
-						if row-expand_value+expRow >= 0 and row-expand_value+expRow < height:
-							if col-expand_value+expCol >= 0 and col-expand_value+expCol < width:
+						curRow = row-expand_value+expRow
+						curCol = col-expand_value+expCol
+						if curRow >= 0 and curRow < height:
+							if curCol >= 0 and curCol < width:
 								expandedMatrix[row-expand_value+expRow][col-expand_value+expCol] = True
 	return expandedMatrix
