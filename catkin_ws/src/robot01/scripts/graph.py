@@ -11,22 +11,22 @@ class Node:
 	"""docstring for node"""
 	def __init__(self, pose):
 		self.position = pose
-		self.neighbors = {}
+		self.neighbours = {}
 
 	def __str__(self):
-		return str(self.position) + ' neighbors: ' + str([node.position for node in self.neighbors])
+		return str(self.position) + ' neighbours: ' + str([node.position for node in self.neighbours])
 
 	def add_neighbour(self, node, weight=1):
-		self.neighbors[node] = weight
+		self.neighbours[node] = weight
 
 	def get_position(self):
 		return self.position
 
-	def get_weight(self, neighbor):
-		return self.neighbors[neighbor]
+	def get_weight(self, neighbour):
+		return self.neighbours[neighbour]
 
-	def get_neighbors(self):
-		return self.neighbors.keys()
+	def get_neighbours(self):
+		return self.neighbours.keys()
 
 class Graph:
 	"""docstring for Graph"""
@@ -54,7 +54,6 @@ class Graph:
 			self.add_node(frm)
 		if to not in self.nodes:
 			self.add_node(to)
-
 		self.nodes[frm].add_neighbour(self.nodes[to], cost)
 		self.nodes[to].add_neighbour(self.nodes[frm], cost)
 
