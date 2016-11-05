@@ -24,7 +24,7 @@ class RobotPoseBr:
 		self.markerPub = rospy.Publisher('/RobotPoseMarker', MarkerArray, queue_size=1)
 		self.markerAry = []
 		self.marker_id = 0
-		self.updateRate = rospy.Rate(10)
+		self.updateRate = rospy.Rate(1)
 		rospy.Subscriber('/base_pose_ground_truth', Odometry, self.handle_real_position)
 		rospy.Subscriber('/odom', Odometry, self.handle_odom_position)
 		while not rospy.is_shutdown():

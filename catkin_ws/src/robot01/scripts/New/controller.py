@@ -84,7 +84,10 @@ class Controller:
 		if (not self.blocked):
 			if (abs(self.goalBasePose[0])>0.4 or abs(self.goalBasePose[1])>0.4):
 				self.cmd_vel.angular.z = self.goalTheta
-				self.cmd_vel.linear.x = 0.5
+				if self.goalTheta > 0.01:
+					self.cmd_vel.linear.x = 0
+				else:
+					self.cmd_vel.linear.x = 1
 			else:
 				print "point reached"
 				self.goalMapPose = self.path.pop(0)
