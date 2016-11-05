@@ -15,6 +15,7 @@ from Queue import PriorityQueue
 import astar
 import controller
 import marker
+import set_param_test_points as SetPoints
 	
 def get_map():
 	rospy.wait_for_service('static_map')
@@ -36,6 +37,9 @@ def get_goals():
 
 try:
 	rospy.init_node("Robot01")
+	print"call set param"
+	SetPoints.set_param_points([[-2.42,35.20],[3.99,4.34],[27.67,28.87],[6.53,51.47],[-6.67,68.87],[-7.27,60.47]])
+	print "points are set"	
 	goals = get_goals()
 	startPose = (-64.0,0.0)
 	grid = get_map()
@@ -50,16 +54,18 @@ try:
 	control = controller.Controller()
 	pathMarkers = marker.Markers(rgbColour=[1,0,0], namespace="Path",frame="/map",markerSize_xyz=[1.0,1.0,1.0])
 	for goal in prioritizedGoals:
+		print goal
 		path = astar.find_path(startPose, goal, grid)
 		print path
-		for pose in path:
-			pathMarkers.add_marker(pose)
-		pathMarkers.draw_markers()
-		control.set_path(path)
-		startPose = (path[-1][0],path[-1][1])
-		while not rospy.is_shutdown() and control.path:
-			control.drive()
-			pathMarkers.draw_markers()
+		if path:
+			for pose in path:
+				pathMarkers.add_marker(pose)
+			control.set_path(path)
+			startPose = (path[-1][0],path[-1][1])
+			while not rospy.is_shutdown() and control.path:
+				control.drive()
+				pathMarkers.draw_markers()
+		path = []
 
 	rospy.spin()
 except KeyboardInterrupt:

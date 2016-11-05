@@ -51,11 +51,22 @@ def find_path(start, goal, grid):
 				parents[child] = currentPose
 				unvisitedQueue.put((priority,child))
 	print "Could not find path!!!"
+	return False
 
 
 def get_children(pose, parentPose, grid):
 	children = []
 	accuracy = 1
+
+	if get_occupancy_value([pose[0]-accuracy,pose[1]], grid) and (pose[0]-accuracy,pose[1]) != parentPose:
+		children.append((pose[0]-accuracy,pose[1]))
+	if get_occupancy_value([pose[0]+accuracy,pose[1]], grid) and (pose[0]+accuracy,pose[1]) != parentPose:
+		children.append((pose[0]+accuracy,pose[1]))
+	if get_occupancy_value([pose[0],pose[1]-accuracy], grid) and (pose[0],pose[1]-accuracy) != parentPose:
+		children.append((pose[0],pose[1]-accuracy))
+	if get_occupancy_value([pose[0],pose[1]+accuracy], grid) and (pose[0],pose[1]+accuracy) != parentPose:
+		children.append((pose[0],pose[1]+accuracy))
+	"""
 	for y in range(3):
 		for x in range(3):
 			currentX = pose[0]-accuracy+x
@@ -66,16 +77,16 @@ def get_children(pose, parentPose, grid):
 				index = realX+realY*grid.info.width
 				if cell_clear(index, grid):
 					children.append((currentX,currentY))
+	"""
 	return children
 
 def cell_clear(index, grid):
 	row_jumper = 0
-	beginIndex = (index-5)-grid.info.width*5
+	beginIndex = (index-7)-grid.info.width*7
 	lineNo = math.ceil(beginIndex/grid.info.width-1.0)
-	for i in range(10):
-		for j in range(10):
+	for i in range(14):
+		for j in range(14):
 			try:
-				#print "new line number: ",math.ceil((beginIndex+j)/self.grid.info.width-1.0)
 				if (grid.data[beginIndex+j+row_jumper] !=0 or lineNo != math.ceil((beginIndex+j)/grid.info.width-1.0)):	#check if this is end of line shomehow
 					return False
 				elif(j == 9):
@@ -83,6 +94,13 @@ def cell_clear(index, grid):
 			except IndexError:
 				return False
 	return True
+
+def get_occupancy_value(coordinates,grid):
+	if coordinates:
+		x = int(round((coordinates[0] - grid.info.origin.position.x)/grid.info.resolution))
+		y = int(round((coordinates[1] - grid.info.origin.position.y)/grid.info.resolution))
+		index = x+y*grid.info.width
+		return cell_clear(index,grid)
 """
 def filter_path(path):
 	normalizedPath = [path[0]]

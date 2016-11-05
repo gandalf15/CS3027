@@ -47,7 +47,7 @@ class Markers:
 		for m in self.markers:
 			Array.markers.append(m)
 		self.markerPub.publish(Array)
-		#self.markerId = 0
+		self.markerId = 0
 
 	def clear_markers(self):
 		Array=MarkerArray()

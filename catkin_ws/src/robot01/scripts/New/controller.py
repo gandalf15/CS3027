@@ -82,11 +82,20 @@ class Controller:
 
 	def drive(self):
 		if (not self.blocked):
-			if (abs(self.goalBasePose[0])>0.4 or abs(self.goalBasePose[1])>0.4):
+			if (abs(self.goalBasePose[0])>0.1 or abs(self.goalBasePose[1])>0.1):
 				self.cmd_vel.angular.z = self.goalTheta
-				if self.goalTheta > 0.01:
-					self.cmd_vel.linear.x = 0
+				if abs(self.goalTheta) > 0.8:
+					print "setting up direction"
+					self.cmd_vel.linear.x = 0.0
+				elif abs(self.goalTheta) > 0.5:
+					print "creeping speed"
+					self.cmd_vel.linear.x = 0.05
+				elif abs(self.goalTheta) > 0.3:
+					self.cmd_vel.linear.x = 0.1
+				elif abs(self.goalTheta) > 0.1:
+					self.cmd_vel.linear.x = 0.4
 				else:
+					print "theta is small: ", self.goalTheta
 					self.cmd_vel.linear.x = 1
 			else:
 				print "point reached"
@@ -106,6 +115,7 @@ class Controller:
 				self.cmd_vel.angular.z = 0.0
 				self.cmd_vel.linear.x = 0.0
 		else:
+			print "robot is blocked"
 			self.cmd_vel.angular.z = 0.5
 			self.cmd_vel.linear.x = 0.0
 
