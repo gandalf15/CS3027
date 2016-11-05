@@ -16,8 +16,8 @@ import math
 class Controller:
 	"""docstring for Controller"""
 	def __init__(self):
-		rospy.init_node("Controller")
-		rospy.loginfo("Starting Controller")
+		#rospy.init_node("Controller")
+		#rospy.loginfo("Starting Controller")
 		self.ctl_vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
 		self.cmd_vel = Twist()
 		self.laserData = LaserScan()

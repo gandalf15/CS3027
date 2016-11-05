@@ -14,6 +14,7 @@ from geometry_msgs.msg import Vector3
 class Markers:
 	"""docstring for Markers"""
 	def __init__(self,rgbColour=[1,0,0], namespace="name",frame="frame",markerSize_xyz=[0.2,0.2,0.2]):
+		#rospy.init_node("Markers")
 		self.markerId = 0
 		self.namespace = namespace
 		self.frameId = frame
@@ -44,10 +45,9 @@ class Markers:
 	def draw_markers(self):
 		Array = MarkerArray()
 		for m in self.markers:
-			print m
 			Array.markers.append(m)
 		self.markerPub.publish(Array)
-		self.markerId = 0
+		#self.markerId = 0
 
 	def clear_markers(self):
 		Array=MarkerArray()
@@ -58,3 +58,13 @@ class Markers:
 		self.markerPub.publish(Array)
 		self.markerId = 0
 		self.markerAry = []
+"""
+try:
+	m = Markers(rgbColour=[1,0,0], namespace="Path",frame="/map",markerSize_xyz=[1.0,1.0,1.0])
+	m.add_marker((-64.0,0.0))
+	while not rospy.is_shutdown():
+		m.draw_markers()
+	rospy.spin()
+except KeyboardInterrupt:
+	pass
+"""
