@@ -22,7 +22,7 @@ def set_param_points(points=[0]):
 			aryPoints.append(point)
 		for p in aryPoints:
 			paramName = "/p%s"%str(i)
-			paramVal = str(p)
+			paramVal = p#str(p)
 			rospy.set_param(paramName, paramVal)
 			i += 1
 	infoMessage = "Points were set: %s"%str(aryPoints)

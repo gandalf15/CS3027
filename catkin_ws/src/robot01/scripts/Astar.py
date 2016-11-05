@@ -94,6 +94,15 @@ class Astar:
 	def __get_children(self, pose, parentPose):
 		children = []
 		accuracy = 1
+
+		for y in range(3):
+			for x in range(3):
+				currentX = pose[0]-accuracy+x
+				currentY = pose[1]-accuracy+y
+				if self.__get_occupancy_value((currentX, currentY)) == 0 and (currentX,currentY) != parentPose:
+					children.append((currentX,currentY))
+		return children
+		"""
 		if self.__get_occupancy_value([pose[0]-accuracy,pose[1]]) == 0 and (pose[0]-accuracy,pose[1]) != parentPose:
 			children.append((pose[0]-accuracy,pose[1]))
 		if self.__get_occupancy_value([pose[0]+accuracy,pose[1]]) == 0 and (pose[0]+accuracy,pose[1]) != parentPose:
@@ -102,7 +111,17 @@ class Astar:
 			children.append((pose[0],pose[1]-accuracy))
 		if self.__get_occupancy_value([pose[0],pose[1]+accuracy]) == 0 and (pose[0],pose[1]+accuracy) != parentPose:
 			children.append((pose[0],pose[1]+accuracy))
+
+		if self.__get_occupancy_value([pose[0]-accuracy,pose[1]-accuracy]) == 0 and (pose[0]-accuracy,pose[1]-accuracy) != parentPose:
+			children.append((pose[0]-accuracy,pose[1]-accuracy))
+		if self.__get_occupancy_value([pose[0]+accuracy,pose[1]+accuracy]) == 0 and (pose[0]+accuracy,pose[1]+accuracy) != parentPose:
+			children.append((pose[0]+accuracy,pose[1]+accuracy))
+		if self.__get_occupancy_value([pose[0]-accuracy,pose[1]+accuracy]) == 0 and (pose[0]-accuracy,pose[1]+accuracy) != parentPose:
+			children.append((pose[0]-accuracy,pose[1]+accuracy))
+		if self.__get_occupancy_value([pose[0]+accuracy,pose[1]-accuracy]) == 0 and (pose[0]+accuracy,pose[1]-accuracy) != parentPose:
+			children.append((pose[0]+accuracy,pose[1]-accuracy))
 		return children
+		"""
 
 	def __get_occupancy_value(self,coordinates):
 		if coordinates:
