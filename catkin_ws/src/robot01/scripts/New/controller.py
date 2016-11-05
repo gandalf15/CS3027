@@ -96,7 +96,7 @@ class Controller:
 					self.cmd_vel.linear.x = 0.4
 				else:
 					print "theta is small: ", self.goalTheta
-					self.cmd_vel.linear.x = 1
+					self.cmd_vel.linear.x = 0.8
 			else:
 				print "point reached"
 				self.goalMapPose = self.path.pop(0)
