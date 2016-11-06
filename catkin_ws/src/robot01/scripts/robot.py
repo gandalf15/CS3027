@@ -63,7 +63,7 @@ try:
 			control.set_path(path)
 			startPose = (path[-1][0],path[-1][1])
 			while not rospy.is_shutdown() and control.path:
-				control.drive()
+				control.drive_random()
 				pathMarkers.draw_markers()
 		path = []
 

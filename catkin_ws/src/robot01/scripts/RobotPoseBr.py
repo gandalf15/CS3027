@@ -9,6 +9,7 @@
 import rospy
 import tf
 from nav_msgs.msg import Odometry
+from geometry_msgs.msg import PoseWithCovarianceStamped
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
 
@@ -18,7 +19,7 @@ class RobotPoseBr:
 		rospy.init_node('Robot_Pose_Broadcaster')
 		rospy.loginfo("Starting the Robot_Pose_Broadcaster")
 		self.realPose = Odometry()
-		self.odomPose = Odometry()
+		self.amclPose = PoseWithCovarianceStamped()
 		self.dimensions_xyz = dimensions_xyz
 		self.broadcaster = tf.TransformBroadcaster()
 		self.markerPub = rospy.Publisher('/RobotPoseMarker', MarkerArray, queue_size=1)
@@ -26,11 +27,11 @@ class RobotPoseBr:
 		self.marker_id = 0
 		self.updateRate = rospy.Rate(1)
 		rospy.Subscriber('/base_pose_ground_truth', Odometry, self.handle_real_position)
-		rospy.Subscriber('/odom', Odometry, self.handle_odom_position)
+		rospy.Subscriber('/amcl_pose', PoseWithCovarianceStamped, self.handle_amcl_position)
 		while not rospy.is_shutdown():
 			self.broadcast_position(self.realPose)
 			self.set_real_pose_marker()
-			self.set_odom_pose_marker()
+			self.set_amcl_pose_marker()
 			self.draw_markers()
 			self.updateRate.sleep()
 		rospy.spin()
@@ -77,11 +78,11 @@ class RobotPoseBr:
 										rospy.Time.now(), 
 										'/real_robot_pose', 
 										'/map')
-	def set_odom_pose_marker(self):
-		position = self.odomPose.pose.pose.position
-		orientation = self.odomPose.pose.pose.orientation
-		namespace = 'robot_odom_pose'
-		frame_id = '/odom'
+	def set_amcl_pose_marker(self):
+		position = self.amclPose.pose.pose.position
+		orientation = self.amclPose.pose.pose.orientation
+		namespace = 'robot_amcl_pose'
+		frame_id = '/map'
 		self.addMarker(position,orientation,0.1,0.1,1,namespace,frame_id,alpha=1)
 	def set_real_pose_marker(self):
 		position = self.realPose.pose.pose.position
@@ -90,8 +91,8 @@ class RobotPoseBr:
 		frame_id = '/map'
 		self.addMarker(position,orientation,0.1,1,0.1,namespace,frame_id,alpha=1)
 
-	def handle_odom_position(self,odomData):
-		self.odomPose = odomData
+	def handle_amcl_position(self,amclData):
+		self.amclPose = amclData
 
 	def handle_real_position(self,odometryData):
 		self.realPose = odometryData

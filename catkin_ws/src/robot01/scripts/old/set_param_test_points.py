@@ -1,15 +1,15 @@
 #!/usr/bin/env python
-from random import randint
 import rospy
-#rospy.init_node('set_param_test_points')
+from random import randint
+
+rospy.init_node('set_param_test_points')
 
 def set_param_points(points=[0]):
 	if (points != [0]):
 		i = 1
-		aryPoints = points
 		for p in points:
 			paramName = "/p%s"%str(i)
-			paramVal = p#str(p)
+			paramVal = str(p)
 			rospy.set_param(paramName, paramVal)
 			i += 1
 	else:
@@ -28,4 +28,4 @@ def set_param_points(points=[0]):
 	infoMessage = "Points were set: %s"%str(aryPoints)
 	rospy.loginfo(infoMessage)
 
-#set_param_points()
+set_param_points()
