@@ -7,31 +7,28 @@
 	<node name="Robot_Pose_Broadcaster" type="RobotPoseBr.py" pkg="robot01" respawn="true"/>
 
 	<!-- http://wiki.ros.org/amcl -->
-	<!--
 	<node pkg="amcl" type="amcl" name="amcl" output="screen">
 		<param name="odom_model_type" value="diff"/>
-		<param name="laser_min_range" value="0.0"/>
-		<param name="laser_max_range" value="10.0"/>
 		<param name="transform_tolerance" value="0.2" />
 		<param name="gui_publish_rate" value="10.0"/>
-		<param name="laser_max_beams" value="30"/>
+		<param name="laser_max_beams" value="5"/>
 		<param name="min_particles" value="500"/>
-		<param name="max_particles" value="1000"/>
+		<param name="max_particles" value="10000"/>
 		<param name="kld_err" value="0.05"/>
 		<param name="kld_z" value="0.99"/>
-		<param name="odom_alpha1" value="5"/>
-		<param name="odom_alpha2" value="3"/>
-		<param name="odom_alpha3" value="5"/>
-		<param name="odom_alpha4" value="3"/>
-		<param name="laser_z_hit" value="0.5"/>
+		<param name="odom_alpha1" value="0.1"/>
+		<param name="odom_alpha2" value="0.1"/>
+		<param name="odom_alpha3" value="0.1"/>
+		<param name="odom_alpha4" value="0.1"/>
+		<param name="laser_z_hit" value="0.9"/>
 		<param name="laser_z_short" value="0.05"/>
 		<param name="laser_z_max" value="0.05"/>
-		<param name="laser_z_rand" value="0.5"/>
-		<param name="laser_sigma_hit" value="0.2"/>
+		<param name="laser_z_rand" value="0.05"/>
+		<param name="laser_sigma_hit" value="0.1"/>
 		<param name="laser_lambda_short" value="0.1"/>
 		<param name="laser_lambda_short" value="0.1"/>
-		<param name="laser_model_type" value="likelihood_field"/>
-		<param name="laser_likelihood_max_dist" value="2.0"/>
+		<param name="laser_model_type" value="beam"/>
+		<param name="laser_likelihood_max_dist" value="9.0"/>
 		<param name="update_min_d" value="0.2"/>
 		<param name="update_min_a" value="0.5"/>
 		<param name="odom_frame_id" value="odom"/>
@@ -41,8 +38,7 @@
 		<param name="recovery_alpha_fast" value="0.1"/>
 		<param name="initial_pose_x" value="-64.0"/>
 		<param name="initial_pose_y" value="0.0"/>
-		<remap from="scan" to="noisy_base_scan" />
-	-->
+		<remap from="scan" to="base_scan" />
 	</node>
 	<!--
 	<node name="robot_control" type="robot.py" pkg="robot01" respawn="true" launch-prefix="xterm -e"/>

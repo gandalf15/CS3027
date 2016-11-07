@@ -15,6 +15,9 @@ RIGHT=0
 class Wallfollower:
 	def __init__(self):
 		rospy.init_node('wallfollower')
+		rospy.wait_for_service('global_localization')
+		glob_local = rospy.ServiceProxy('global_localization', Empty)
+		glob_local()
 		self.safeDistance=2
 		self.following=LEFT
 		#followingwallonLEFTorRIGHT
