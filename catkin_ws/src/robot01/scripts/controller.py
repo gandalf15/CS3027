@@ -10,7 +10,6 @@ from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import PoseWithCovarianceStamped
-#from geometry_msgs.msg import Pose
 import tf
 import math
 
@@ -18,34 +17,28 @@ class Controller:
 	"""docstring for Controller"""
 	def __init__(self):
 		#rospy.init_node("Controller")
-		#rospy.loginfo("Starting Controller")
+		rospy.loginfo("Starting Controller")
 		self.ctl_vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
 		self.cmd_vel = Twist()
 		self.laserData = LaserScan()
 		self.dimensions_xyz = self.setDimensionsParam()
-		#self.odomData = Odometry()
-		self.amclData = PoseWithCovarianceStamped()
 		self.path = None
 		self.goalMapPose = [0.0,0.0]
-		#self.goalBasePose = [1.0,1.0]
-		self.theta = 0.0
 		self.goalTheta = 0.0
 		self.tf = tf.TransformListener()
-		#self.currentOdomPose = [0.0,0.0]
-		self.currentAmclPose = [0.0,0.0]
+		self.currentMapPose = [0.0,0.0,0.0]
+		self.latestOdomPose = [0.0,0.0,0.0]
 		self.blocked = False
 
 		rospy.wait_for_message("/amcl_pose", PoseWithCovarianceStamped)
 		rospy.loginfo("AMCL ready")
 		rospy.Subscriber("/amcl_pose", PoseWithCovarianceStamped, self.get_amcl_pose)
-		#rospy.Subscriber('/base_scan', LaserScan, self.detectObstacle)
-		"""
+
 		rospy.wait_for_message("/odom", Odometry)
 		rospy.loginfo("odom ready")
 		rospy.Subscriber("/odom", Odometry, self.get_odom)
 		#rospy.Subscriber('/base_scan', LaserScan, self.detectObstacle)
-		"""
-
+		
 	def set_path(self,path):
 		self.path = path
 		self.goalMapPose = self.path.pop(0)
@@ -70,35 +63,26 @@ class Controller:
 			curAngle=curAngle+inc
 
 	def get_amcl_pose(self, data):
-		self.amclData = data
-		self.currentAmclPose[0] = data.pose.pose.position.x
-		self.currentAmclPose[1] = data.pose.pose.position.y
-		self.theta = math.atan2(self.goalMapPose[1] - self.currentAmclPose[1],
-								self.goalMapPose[0] - self.currentAmclPose[0])
+		self.currentMapPose[0] = data.pose.pose.position.x
+		self.currentMapPose[1] = data.pose.pose.position.y
+		self.currentMapPose[2]= tf.transformations.euler_from_quaternion([0,0,data.pose.pose.orientation.z,data.pose.pose.orientation.w])[2]
 
-	"""	
 	def get_odom(self, data):
-		self.lastOdomTime = rospy.get_time()
-		self.odomData = data
-		self.currentOdomPose[0] = round(data.pose.pose.position.x)
-		self.currentOdomPose[1] = round(data.pose.pose.position.y)
-
-		try:
-			ps = PointStamped()
-			ps.point.x = self.goalMapPose[0]
-			ps.point.y = self.goalMapPose[1]
-			ps.header.stamp = self.tf.getLatestCommonTime("/map","/base_link")
-			ps.header.frame_id = "/map"
-			newPs = self.tf.transformPoint("/base_link", ps)
-			self.goalBasePose = [newPs.point.x,newPs.point.y]
-			self.goalTheta = math.atan2(newPs.point.y, newPs.point.x)
-		except:
-			pass
-	"""
-	"""
+		self.currentMapPose[0] = self.currentMapPose[0] + (data.pose.pose.position.x - self.latestOdomPose[0])
+		self.currentMapPose[1] = self.currentMapPose[1] + (data.pose.pose.position.y - self.latestOdomPose[1])
+		euler_yaw = tf.transformations.euler_from_quaternion([0,0,data.pose.pose.orientation.z,data.pose.pose.orientation.w])[2]
+		self.currentMapPose[2] = self.currentMapPose[2] + (euler_yaw - self.latestOdomPose[2])
+		self.latestOdomPose[0] = data.pose.pose.position.x
+		self.latestOdomPose[1] = data.pose.pose.position.y
+		self.latestOdomPose[2] = euler_yaw
+		
 	def drive(self):
 		if (not self.blocked):
-			if (abs(self.goalBasePose[0])>0.1 or abs(self.goalBasePose[1])>0.1):
+			self.goalTheta = math.atan2(self.goalMapPose[1] - self.currentMapPose[1], self.goalMapPose[0] - self.currentMapPose[0])
+			print self.currentMapPose
+			print self.goalMapPose
+			print self.goalTheta
+			if (abs(self.currentMapPose[0]-self.goalMapPose[0])>0.2 or abs(self.currentMapPose[1]-self.goalMapPose[1])>0.2):
 				self.cmd_vel.angular.z = self.goalTheta
 				if abs(self.goalTheta) > 0.8:
 					print "setting up direction"
@@ -116,18 +100,8 @@ class Controller:
 			else:
 				print "point reached"
 				self.goalMapPose = self.path.pop(0)
-				try:
-					ps = PointStamped()
-					ps.point.x = self.goalMapPose[0]
-					ps.point.y = self.goalMapPose[1]
-					ps.header.stamp = self.tf.getLatestCommonTime("/map","/base_link")
-					ps.header.frame_id = "/map"
-					newPs = self.tf.transformPoint("/base_link", ps)
-					self.goalBasePose = [newPs.point.x,newPs.point.y]
-					self.goalTheta = math.atan2(newPs.point.y, newPs.point.x)
-				except:
-					print "exception while TF point"
-					pass
+				self.goalTheta = math.atan2(self.goalMapPose[1] - self.currentMapPose[1],
+									self.goalMapPose[0] - self.currentMapPose[0])
 				self.cmd_vel.angular.z = 0.0
 				self.cmd_vel.linear.x = 0.0
 		else:
@@ -135,49 +109,4 @@ class Controller:
 			self.cmd_vel.angular.z = 0.5
 			self.cmd_vel.linear.x = 0.0
 
-		self.ctl_vel.publish(self.cmd_vel)	
-	"""
-	def drive(self):
-		if (not self.blocked):
-			print self.currentAmclPose
-			print self.goalMapPose
-			print self.theta
-			if (abs(self.currentAmclPose[0]-self.goalMapPose[0])>0.2 or abs(self.currentAmclPose[1]-self.goalMapPose[1])>0.2):
-				self.cmd_vel.angular.z = self.theta
-				if abs(self.theta) > 0.8:
-					print "setting up direction"
-					self.cmd_vel.linear.x = 0.0
-				elif abs(self.theta) > 0.5:
-					print "creeping speed"
-					self.cmd_vel.linear.x = 0.05
-				elif abs(self.theta) > 0.3:
-					self.cmd_vel.linear.x = 0.1
-				elif abs(self.theta) > 0.1:
-					self.cmd_vel.linear.x = 0.4
-				else:
-					print "theta is small: ", self.theta
-					self.cmd_vel.linear.x = 0.8
-			else:
-				print "point reached"
-				self.goalMapPose = self.path.pop(0)
-				self.theta = math.atan2(self.goalMapPose[1] - self.currentAmclPose[1],
-									self.goalMapPose[0] - self.currentAmclPose[0])
-				self.cmd_vel.angular.z = 0.0
-				self.cmd_vel.linear.x = 0.0
-		else:
-			print "robot is blocked"
-			self.cmd_vel.angular.z = 0.5
-			self.cmd_vel.linear.x = 0.0
-
-		self.ctl_vel.publish(self.cmd_vel)
-
-	def drive_random(self):
-		if (not self.currentAmclPose):
-			self.cmd_vel.linear.x = 0.1
-			self.cmd_vel.angular.z = 0.2
-	
-		else:
-			self.drive()
-			self.cmd_vel.linear.x = 0.0
-			self.cmd_vel.angular.z = 0.0
 		self.ctl_vel.publish(self.cmd_vel)
