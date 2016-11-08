@@ -82,10 +82,10 @@ def get_children(pose, parentPose, grid):
 
 def cell_clear(index, grid):
 	row_jumper = 0
-	beginIndex = (index-7)-grid.info.width*7
+	beginIndex = (index-8)-grid.info.width*8
 	lineNo = math.ceil(beginIndex/grid.info.width-1.0)
-	for i in range(14):
-		for j in range(14):
+	for i in range(16):
+		for j in range(16):
 			try:
 				if (grid.data[beginIndex+j+row_jumper] !=0 or lineNo != math.ceil((beginIndex+j)/grid.info.width-1.0)):	#check if this is end of line shomehow
 					return False

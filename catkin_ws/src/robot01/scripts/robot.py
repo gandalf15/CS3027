@@ -37,9 +37,6 @@ def get_goals():
 
 try:
 	rospy.init_node("Robot01")
-	print"call set param"
-	SetPoints.set_param_points([[-2.42,35.20],[-60.0,2.34],[27.67,28.87],[6.53,51.47],[-6.67,68.87],[-7.27,60.47]])
-	print "points are set"	
 	goals = get_goals()
 	startPose = (-64.0,0.0)
 	grid = get_map()
@@ -52,7 +49,7 @@ try:
 	prioritizedGoals = astar.prioritize_goals(startPose, goalsQueue)
 	print prioritizedGoals
 	controll = controller.Controller()
-	pathMarkers = marker.Markers(rgbColour=[1,0,0], namespace="Path",frame="/map",markerSize_xyz=[1.0,1.0,1.0])
+	pathMarkers = marker.Markers(rgbColour=[0,0.5,0], namespace="Path",frame="/map",markerSize_xyz=[1.0,1.0,0.01])
 	for goal in prioritizedGoals:
 		print goal
 		path = astar.find_path(startPose, goal, grid)
@@ -62,7 +59,7 @@ try:
 				pathMarkers.add_marker(pose)
 			controll.set_path(path)
 			startPose = (path[-1][0],path[-1][1])
-			rate = rospy.Rate(20)
+			rate = rospy.Rate(100)
 			while not rospy.is_shutdown() and controll.path:
 				controll.drive()
 				pathMarkers.draw_markers()

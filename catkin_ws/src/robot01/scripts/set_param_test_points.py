@@ -28,4 +28,4 @@ def set_param_points(points=[0]):
 	infoMessage = "Points were set: %s"%str(aryPoints)
 	rospy.loginfo(infoMessage)
 
-set_param_points([[-2.42,35.20],[-60.0,2.34],[27.67,28.87],[6.53,51.47],[-6.67,68.87],[-7.27,60.47]])
+set_param_points([[5.30,36.83],[10.28,9.39],[-21.60,-36.51],[-32.72,2.93],[-26.6,22.76],[-49.89,22.09]])

@@ -23,11 +23,9 @@ class Controller:
 		self.currentMapPose = [-64.0,0.0,0.0]
 		self.latestOdomPose = [0.0,0.0,0.0]
 		self.blocked = False
-		self.amclData = PoseWithCovarianceStamped()
-		self.odomData = Odometry()
-		#rospy.wait_for_message("/amcl_pose", PoseWithCovarianceStamped)
-		#rospy.loginfo("AMCL ready")
-		#rospy.Subscriber("/amcl_pose", PoseWithCovarianceStamped, self.get_amcl_pose)
+		rospy.wait_for_message("/amcl_pose", PoseWithCovarianceStamped)
+		rospy.loginfo("AMCL ready")
+		rospy.Subscriber("/amcl_pose", PoseWithCovarianceStamped, self.get_amcl_pose)
 		rospy.wait_for_message("/odom", Odometry)
 		rospy.loginfo("odom ready")
 		rospy.Subscriber("/odom", Odometry, self.get_odom)
@@ -57,20 +55,17 @@ class Controller:
 			curAngle=curAngle+inc
 
 	def get_amcl_pose(self, data):
-		print "got amcl data"
-		self.amclData = data
-		position = self.amclData.pose.pose.position
-		orientation = self.amclData.pose.pose.orientation
+		position = data.pose.pose.position
+		orientation = data.pose.pose.orientation
 		self.currentMapPose[0] = position.x
 		self.currentMapPose[1] = position.y
 		self.currentMapPose[2]= tf.transformations.euler_from_quaternion([0.0, 0.0, orientation.z, orientation.w])[2]
+		self.goalTheta = math.atan2(self.goalMapPose[1] - self.currentMapPose[1],
+									self.goalMapPose[0] - self.currentMapPose[0])
 
 	def get_odom(self, data):
-		print "got odom data"
-		print data
-		self.odomData = data
-		position = self.odomData.pose.pose.position
-		orientation = self.odomData.pose.pose.orientation
+		position = data.pose.pose.position
+		orientation = data.pose.pose.orientation
 		self.currentMapPose[0] = self.currentMapPose[0] + (position.x - self.latestOdomPose[0])
 		self.currentMapPose[1] = self.currentMapPose[1] + (position.y - self.latestOdomPose[1])
 		euler_yaw = tf.transformations.euler_from_quaternion([0.0, 0.0, orientation.z, orientation.w])[2]
@@ -78,31 +73,28 @@ class Controller:
 		self.latestOdomPose[0] = position.x
 		self.latestOdomPose[1] = position.y
 		self.latestOdomPose[2] = euler_yaw
-		print self.goalMapPose
-		print self.currentMapPose
-		print (self.goalMapPose[1] - self.currentMapPose[1])
-		print (self.goalMapPose[0] - self.currentMapPose[0])
-		print self.goalTheta
-		self.goalTheta = math.atan2((self.goalMapPose[1] - self.currentMapPose[1]), (self.goalMapPose[0] - self.currentMapPose[0]))
-		print self.goalTheta
+		self.goalTheta = math.atan2(self.goalMapPose[1] - self.currentMapPose[1],
+									self.goalMapPose[0] - self.currentMapPose[0])
 		
 	def drive(self):
 		if (not self.blocked):
-			if (abs(self.currentMapPose[0]-self.goalMapPose[0])>0.2 or abs(self.currentMapPose[1]-self.goalMapPose[1])>0.2):
-				self.cmd_vel.angular.z = self.goalTheta
-				if abs(self.goalTheta) > 0.8:
+			print self.currentMapPose
+			print self.goalMapPose
+			if (abs(self.goalMapPose[0]-self.currentMapPose[0])>0.2 or abs(self.goalMapPose[1]-self.currentMapPose[1])>0.2):
+				self.cmd_vel.angular.z = self.goalTheta-self.currentMapPose[2]
+				if abs(self.cmd_vel.angular.z) > 0.8:
 					print "setting up direction"
 					self.cmd_vel.linear.x = 0.0
-				elif abs(self.goalTheta) > 0.5:
+				elif abs(self.cmd_vel.angular.z) > 0.5:
 					print "creeping speed"
 					self.cmd_vel.linear.x = 0.05
-				elif abs(self.goalTheta) > 0.3:
+				elif abs(self.cmd_vel.angular.z) > 0.3:
 					self.cmd_vel.linear.x = 0.1
-				elif abs(self.goalTheta) > 0.1:
+				elif abs(self.cmd_vel.angular.z) > 0.1:
 					self.cmd_vel.linear.x = 0.4
 				else:
-					print "theta is small: ", self.goalTheta
-					self.cmd_vel.linear.x = 0.8
+					print "Rotation is small: ", self.cmd_vel.angular.z
+					self.cmd_vel.linear.x = 1
 			else:
 				print "point reached"
 				self.goalMapPose = self.path.pop(0)
@@ -116,3 +108,11 @@ class Controller:
 			self.cmd_vel.linear.x = 0.0
 
 		self.ctl_vel.publish(self.cmd_vel)
+	"""
+	def normalize(self, theta):
+		while theta <= math.pi:
+			theta += 2.0*math.pi
+		while theta > math.pi:
+			theta -= 2.0*math.pi
+		return theta
+	"""
