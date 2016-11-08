@@ -67,6 +67,7 @@ class Controller:
 
 	def get_odom(self, data):
 		print "got odom data"
+		print data
 		self.odomData = data
 		position = self.odomData.pose.pose.position
 		orientation = self.odomData.pose.pose.orientation
