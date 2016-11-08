@@ -34,6 +34,7 @@ class RobotPoseBr:
 			self.set_amcl_pose_marker()
 			self.draw_markers()
 			self.updateRate.sleep()
+			self.clean_markers()
 		rospy.spin()
 			
 	def addMarker(self,position,orientation,r,g,b,namespace,frame_id,alpha):
@@ -62,14 +63,15 @@ class RobotPoseBr:
 			markerArray.markers.append(m)
 		self.markerPub.publish(markerArray)
 		self.marker_id = 0
-	"""
-	def clear_markers(self):
+		self.markerAry = []
+
+	def clean_markers(self):
 		markerArray=MarkerArray()
 		for m in self.markerAry:
 			m.action = m.DELETE
 			markerArray.markers.append(m)
 		self.markerPub.publish(markerArray)
-	"""
+
 	def broadcast_position(self,odometryData):
 		l = self.realPose.pose.pose.position
 		q = self.realPose.pose.pose.orientation
@@ -93,7 +95,7 @@ class RobotPoseBr:
 		orientation = self.realPose.pose.pose.orientation
 		namespace = 'robot_real_pose'
 		frame_id = '/map'
-		self.addMarker(position,orientation,0.1,1,0.1,namespace,frame_id,alpha=1)
+		self.addMarker(position,orientation,0.1,0.1,0.1,namespace,frame_id,alpha=1)
 
 	def handle_amcl_position(self,amclData):
 		self.amclPose = amclData

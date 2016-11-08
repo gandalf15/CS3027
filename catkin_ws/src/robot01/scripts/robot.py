@@ -24,7 +24,8 @@ class Robot:
 		rospy.loginfo("Waiting for message /base_pose_ground_truth")
 		rospy.wait_for_message("/base_pose_ground_truth", Odometry)
 		rospy.loginfo("/base_pose_ground_truth ready")
-		self.realRobotPose = []
+		self.currentRealRobotPose = self.get_start()
+		self.previousRealRobotPose = self.get_start()
 		rospy.Subscriber("/base_pose_ground_truth", Odometry, self.setRealPose)
 		self.floatGoals = self.get_goals()
 		self.startPose = self.get_start()
@@ -39,9 +40,9 @@ class Robot:
 		rospy.loginfo("Goals were prioritized based on heuristic.")
 		rospy.loginfo(self.prioritizedGoals)
 		self.control = controller.Controller()
-		self.pathMarkers = marker.Markers(rgbColour=[0,0.5,0], namespace="Path",frame="/map",markerSize_xyz=[1.0,1.0,0.01])
-		self.realPathMarkers = marker.Markers(rgbColour=[0,0.5,0], namespace="realPath",frame="/map",markerSize_xyz=[0.5,0.5,0.05])
-		self.goalMarkers = marker.Markers(rgbColour=[1,1.5,0], namespace="Goals",frame="/map",markerSize_xyz=[0.2,0.2,1.0])
+		self.pathMarkers = marker.Markers(rgbColour=[0,0.8,0], namespace="Path",frame="/map",markerSize_xyz=[1.0,1.0,0.01])
+		self.realPathMarkers = marker.Markers(rgbColour=[1,0,0], namespace="realPath",frame="/map",markerSize_xyz=[0.5,0.5,0.5])
+		self.goalMarkers = marker.Markers(rgbColour=[1,1,0], namespace="Goals",frame="/map",markerSize_xyz=[0.2,0.2,1.0])
 		nextStart = self.startPose
 		currentGoal = []
 		for goal in self.prioritizedGoals:
@@ -61,14 +62,21 @@ class Robot:
 				nextStart = (currentPath[-1][0],currentPath[-1][1])
 				self.pathMarkers.draw_markers()
 				self.goalMarkers.draw_markers()
-				rate = rospy.Rate(10)
+				rate = rospy.Rate(50)
 				while not rospy.is_shutdown() and self.control.path:
 					self.control.drive()
 					self.pathMarkers.draw_markers()
+					rate.sleep()
 					self.goalMarkers.draw_markers()
-					self.realPathMarkers.add_marker(self.realRobotPose)
+					if (abs(self.previousRealRobotPose[0]-self.currentRealRobotPose[0])>0.5 or \
+					abs(self.previousRealRobotPose[1]-self.currentRealRobotPose[1])>0.5):
+						self.realPathMarkers.add_marker(self.currentRealRobotPose)
+						self.previousRealRobotPose = self.currentRealRobotPose
+					rate.sleep()
 					self.realPathMarkers.draw_markers()
 					rate.sleep()
+					if self.control.path:
+						print "there is path"
 
 		rospy.spin()
 	
@@ -96,7 +104,7 @@ class Robot:
 		return points
 
 	def setRealPose(self,data):
-		self.realRobotPose = [data.pose.pose.position.x, data.pose.pose.position.y]
+		self.currentRealRobotPose = [data.pose.pose.position.x, data.pose.pose.position.y]
 
 try:
 	robot01 = Robot()
