@@ -62,10 +62,12 @@ try:
 				pathMarkers.add_marker(pose)
 			controll.set_path(path)
 			startPose = (path[-1][0],path[-1][1])
+			rate = rospy.Rate(50)
 			while not rospy.is_shutdown() and controll.path:
 				controll.drive()
 				pathMarkers.draw_markers()
-		#path = []
+				rate.sleep()
+
 
 	rospy.spin()
 except KeyboardInterrupt:

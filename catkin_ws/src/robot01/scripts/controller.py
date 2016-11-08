@@ -1,11 +1,6 @@
 #!/usr/bin/env python
 
 import rospy
-from nav_msgs.srv import GetMap
-import astar
-from geometry_msgs.msg import PointStamped
-from std_msgs.msg import Header
-from geometry_msgs.msg import Point
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
@@ -16,7 +11,6 @@ import math
 class Controller:
 	"""docstring for Controller"""
 	def __init__(self):
-		#rospy.init_node("Controller")
 		rospy.loginfo("Starting Controller")
 		self.ctl_vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
 		self.cmd_vel = Twist()
@@ -29,11 +23,11 @@ class Controller:
 		self.currentMapPose = [0.0,0.0,0.0]
 		self.latestOdomPose = [0.0,0.0,0.0]
 		self.blocked = False
-
+		self.amclData = PoseWithCovarianceStamped()
+		self.odomData = Odometry()
 		rospy.wait_for_message("/amcl_pose", PoseWithCovarianceStamped)
 		rospy.loginfo("AMCL ready")
 		rospy.Subscriber("/amcl_pose", PoseWithCovarianceStamped, self.get_amcl_pose)
-
 		rospy.wait_for_message("/odom", Odometry)
 		rospy.loginfo("odom ready")
 		rospy.Subscriber("/odom", Odometry, self.get_odom)
@@ -63,25 +57,34 @@ class Controller:
 			curAngle=curAngle+inc
 
 	def get_amcl_pose(self, data):
-		self.currentMapPose[0] = data.pose.pose.position.x
-		self.currentMapPose[1] = data.pose.pose.position.y
-		self.currentMapPose[2]= tf.transformations.euler_from_quaternion([0,0,data.pose.pose.orientation.z,data.pose.pose.orientation.w])[2]
+		print "got amcl data"
+		self.amclData = data
+		position = self.amclData.pose.pose.position
+		orientation = self.amclData.pose.pose.orientation
+		self.currentMapPose[0] = position.x
+		self.currentMapPose[1] = position.y
+		self.currentMapPose[2]= tf.transformations.euler_from_quaternion([0, 0, orientation.z, orientation.w])[2]
 
 	def get_odom(self, data):
-		self.currentMapPose[0] = self.currentMapPose[0] + (data.pose.pose.position.x - self.latestOdomPose[0])
-		self.currentMapPose[1] = self.currentMapPose[1] + (data.pose.pose.position.y - self.latestOdomPose[1])
-		euler_yaw = tf.transformations.euler_from_quaternion([0,0,data.pose.pose.orientation.z,data.pose.pose.orientation.w])[2]
+		print "got odom data"
+		self.odomData = data
+		position = self.odomData.pose.pose.position
+		orientation = self.odomData.pose.pose.orientation
+		self.currentMapPose[0] = self.currentMapPose[0] + (position.x - self.latestOdomPose[0])
+		self.currentMapPose[1] = self.currentMapPose[1] + (position.y - self.latestOdomPose[1])
+		euler_yaw = tf.transformations.euler_from_quaternion([0, 0, orientation.z, orientation.w])[2]
 		self.currentMapPose[2] = self.currentMapPose[2] + (euler_yaw - self.latestOdomPose[2])
-		self.latestOdomPose[0] = data.pose.pose.position.x
-		self.latestOdomPose[1] = data.pose.pose.position.y
+		self.latestOdomPose[0] = position.x
+		self.latestOdomPose[1] = position.y
 		self.latestOdomPose[2] = euler_yaw
+		print self.currentMapPose
+		print self.goalMapPose
+		print self.goalTheta
+		self.goalTheta = math.atan2((self.goalMapPose[1] - self.currentMapPose[1]), (self.goalMapPose[0] - self.currentMapPose[0]))
+		print self.goalTheta
 		
 	def drive(self):
 		if (not self.blocked):
-			self.goalTheta = math.atan2(self.goalMapPose[1] - self.currentMapPose[1], self.goalMapPose[0] - self.currentMapPose[0])
-			print self.currentMapPose
-			print self.goalMapPose
-			print self.goalTheta
 			if (abs(self.currentMapPose[0]-self.goalMapPose[0])>0.2 or abs(self.currentMapPose[1]-self.goalMapPose[1])>0.2):
 				self.cmd_vel.angular.z = self.goalTheta
 				if abs(self.goalTheta) > 0.8:
