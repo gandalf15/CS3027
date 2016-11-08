@@ -20,14 +20,14 @@ class Controller:
 		self.goalMapPose = [0.0,0.0]
 		self.goalTheta = 0.0
 		self.tf = tf.TransformListener()
-		self.currentMapPose = [0.0,0.0,0.0]
+		self.currentMapPose = [-64.0,0.0,0.0]
 		self.latestOdomPose = [0.0,0.0,0.0]
 		self.blocked = False
 		self.amclData = PoseWithCovarianceStamped()
 		self.odomData = Odometry()
-		rospy.wait_for_message("/amcl_pose", PoseWithCovarianceStamped)
-		rospy.loginfo("AMCL ready")
-		rospy.Subscriber("/amcl_pose", PoseWithCovarianceStamped, self.get_amcl_pose)
+		#rospy.wait_for_message("/amcl_pose", PoseWithCovarianceStamped)
+		#rospy.loginfo("AMCL ready")
+		#rospy.Subscriber("/amcl_pose", PoseWithCovarianceStamped, self.get_amcl_pose)
 		rospy.wait_for_message("/odom", Odometry)
 		rospy.loginfo("odom ready")
 		rospy.Subscriber("/odom", Odometry, self.get_odom)
@@ -63,7 +63,7 @@ class Controller:
 		orientation = self.amclData.pose.pose.orientation
 		self.currentMapPose[0] = position.x
 		self.currentMapPose[1] = position.y
-		self.currentMapPose[2]= tf.transformations.euler_from_quaternion([0, 0, orientation.z, orientation.w])[2]
+		self.currentMapPose[2]= tf.transformations.euler_from_quaternion([0.0, 0.0, orientation.z, orientation.w])[2]
 
 	def get_odom(self, data):
 		print "got odom data"
@@ -73,13 +73,15 @@ class Controller:
 		orientation = self.odomData.pose.pose.orientation
 		self.currentMapPose[0] = self.currentMapPose[0] + (position.x - self.latestOdomPose[0])
 		self.currentMapPose[1] = self.currentMapPose[1] + (position.y - self.latestOdomPose[1])
-		euler_yaw = tf.transformations.euler_from_quaternion([0, 0, orientation.z, orientation.w])[2]
+		euler_yaw = tf.transformations.euler_from_quaternion([0.0, 0.0, orientation.z, orientation.w])[2]
 		self.currentMapPose[2] = self.currentMapPose[2] + (euler_yaw - self.latestOdomPose[2])
 		self.latestOdomPose[0] = position.x
 		self.latestOdomPose[1] = position.y
 		self.latestOdomPose[2] = euler_yaw
-		print self.currentMapPose
 		print self.goalMapPose
+		print self.currentMapPose
+		print (self.goalMapPose[1] - self.currentMapPose[1])
+		print (self.goalMapPose[0] - self.currentMapPose[0])
 		print self.goalTheta
 		self.goalTheta = math.atan2((self.goalMapPose[1] - self.currentMapPose[1]), (self.goalMapPose[0] - self.currentMapPose[0]))
 		print self.goalTheta
