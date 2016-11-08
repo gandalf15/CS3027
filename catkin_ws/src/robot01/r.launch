@@ -43,7 +43,7 @@
 		<param name="initial_pose_y" value="0.0"/>
 		<param name="initial_cov_xx" value="0.5"/>
 		<param name="initial_cov_yy" value="0.5"/>
-		<remap from="scan" to="base_scan" />
+		<remap from="scan" to="noisy_base_scan" />
 	</node>
 
 	<!--

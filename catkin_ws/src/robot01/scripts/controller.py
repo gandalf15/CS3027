@@ -82,21 +82,28 @@ class Controller:
 		if (not self.blocked):
 			print self.currentMapPose
 			print self.goalMapPose
-			if (abs(self.goalMapPose[0]-self.currentMapPose[0])>0.5 or abs(self.goalMapPose[1]-self.currentMapPose[1])>0.5):
+			if len(self.path) == 1 and \
+			(abs(self.floatGoalMapPose[0]-self.currentMapPose[0]) > 0.05 or abs(self.floatGoalMapPose[1]-self.currentMapPose[1]) > 0.05):
+				self.goalMapPose = self.floatGoalMapPose
+				self.cmd_vel.angular.z = self.adjust_rotation(self.goalTheta-self.currentMapPose[2])
+				self.cmd_vel.linear.x = 0.1
+				print "almost at goal pose", self.currentMapPose
+				print "my goal pose", self.floatGoalMapPose
+			elif(abs(self.goalMapPose[0]-self.currentMapPose[0])>0.5 or abs(self.goalMapPose[1]-self.currentMapPose[1])>0.5):
 				self.cmd_vel.angular.z = self.adjust_rotation(self.goalTheta-self.currentMapPose[2])
 				if abs(self.cmd_vel.angular.z) > 0.8:
 					print "setting up direction"
 					self.cmd_vel.linear.x = 0.0
 				elif abs(self.cmd_vel.angular.z) > 0.5:
 					print "creeping speed"
-					self.cmd_vel.linear.x = 0.05
-				elif abs(self.cmd_vel.angular.z) > 0.3:
 					self.cmd_vel.linear.x = 0.1
+				elif abs(self.cmd_vel.angular.z) > 0.3:
+					self.cmd_vel.linear.x = 0.2
 				elif abs(self.cmd_vel.angular.z) > 0.1:
 					self.cmd_vel.linear.x = 0.4
 				else:
 					print "Rotation is small: ", self.cmd_vel.angular.z
-					self.cmd_vel.linear.x = 2
+					self.cmd_vel.linear.x = 1.5
 			else:
 				print "point reached"
 				self.goalMapPose = self.path.pop(0)
