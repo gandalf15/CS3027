@@ -66,7 +66,7 @@ def get_children(pose, parentPose, grid):
 		children.append((pose[0],pose[1]-accuracy))
 	if get_occupancy_value([pose[0],pose[1]+accuracy], grid) and (pose[0],pose[1]+accuracy) != parentPose:
 		children.append((pose[0],pose[1]+accuracy))
-	"""
+	""" this is for diagonal movement. the cost for diagonal must be higher
 	for y in range(3):
 		for x in range(3):
 			currentX = pose[0]-accuracy+x
@@ -82,10 +82,10 @@ def get_children(pose, parentPose, grid):
 
 def cell_clear(index, grid):
 	row_jumper = 0
-	beginIndex = (index-10)-grid.info.width*10
+	beginIndex = (index-12)-grid.info.width*12
 	lineNo = math.ceil(beginIndex/grid.info.width-1.0)
-	for i in range(20):
-		for j in range(20):
+	for i in range(24):
+		for j in range(24):
 			try:
 				if (grid.data[beginIndex+j+row_jumper] !=0 or lineNo != math.ceil((beginIndex+j)/grid.info.width-1.0)):	#check if this is end of line shomehow
 					return False

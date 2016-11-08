@@ -25,6 +25,9 @@ def set_param_points(points=[0]):
 			paramVal = p#str(p)
 			rospy.set_param(paramName, paramVal)
 			i += 1
+
+	rospy.set_param("/start_pos", [-64.0,0.0])
+
 	infoMessage = "Points were set: %s"%str(aryPoints)
 	rospy.loginfo(infoMessage)
 

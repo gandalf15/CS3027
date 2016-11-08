@@ -18,6 +18,7 @@ class Controller:
 		self.dimensions_xyz = self.setDimensionsParam()
 		self.path = None
 		self.goalMapPose = [0.0,0.0]
+		self.floatGoalMapPose = [0.0,0.0]
 		self.goalTheta = 0.0
 		self.tf = tf.TransformListener()
 		self.currentMapPose = [-64.0,0.0,0.0]
@@ -31,9 +32,10 @@ class Controller:
 		rospy.Subscriber("/odom", Odometry, self.get_odom)
 		#rospy.Subscriber('/base_scan', LaserScan, self.detectObstacle)
 		
-	def set_path(self,path):
+	def set_path(self,path,floatGoal):
 		self.path = path
 		self.goalMapPose = self.path.pop(0)
+		self.floatGoalMapPose = floatGoal
 
 	def setDimensionsParam(self):
 		rospy.set_param('/robot/dimensions_xyz', [1.0,1.0,0.25])

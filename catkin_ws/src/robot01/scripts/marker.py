@@ -47,9 +47,8 @@ class Markers:
 		for m in self.markers:
 			Array.markers.append(m)
 		self.markerPub.publish(Array)
-		self.markerId = 0
 
-	def clear_markers(self):
+	def clean_markers(self):
 		Array=MarkerArray()
 		if self.markers:
 			for m in self.markers:
@@ -58,13 +57,3 @@ class Markers:
 		self.markerPub.publish(Array)
 		self.markerId = 0
 		self.markerAry = []
-"""
-try:
-	m = Markers(rgbColour=[1,0,0], namespace="Path",frame="/map",markerSize_xyz=[1.0,1.0,1.0])
-	m.add_marker((-64.0,0.0))
-	while not rospy.is_shutdown():
-		m.draw_markers()
-	rospy.spin()
-except KeyboardInterrupt:
-	pass
-"""
