@@ -80,8 +80,8 @@ class Controller:
 		if (not self.blocked):
 			print self.currentMapPose
 			print self.goalMapPose
-			if (abs(self.goalMapPose[0]-self.currentMapPose[0])>0.2 or abs(self.goalMapPose[1]-self.currentMapPose[1])>0.2):
-				self.cmd_vel.angular.z = self.goalTheta-self.currentMapPose[2]
+			if (abs(self.goalMapPose[0]-self.currentMapPose[0])>0.5 or abs(self.goalMapPose[1]-self.currentMapPose[1])>0.5):
+				self.cmd_vel.angular.z = self.adjust_rotation(self.goalTheta-self.currentMapPose[2])
 				if abs(self.cmd_vel.angular.z) > 0.8:
 					print "setting up direction"
 					self.cmd_vel.linear.x = 0.0
@@ -94,7 +94,7 @@ class Controller:
 					self.cmd_vel.linear.x = 0.4
 				else:
 					print "Rotation is small: ", self.cmd_vel.angular.z
-					self.cmd_vel.linear.x = 1
+					self.cmd_vel.linear.x = 2
 			else:
 				print "point reached"
 				self.goalMapPose = self.path.pop(0)
@@ -108,11 +108,10 @@ class Controller:
 			self.cmd_vel.linear.x = 0.0
 
 		self.ctl_vel.publish(self.cmd_vel)
-	"""
-	def normalize(self, theta):
+	
+	def adjust_rotation(self, theta):
 		while theta <= math.pi:
 			theta += 2.0*math.pi
 		while theta > math.pi:
 			theta -= 2.0*math.pi
 		return theta
-	"""
