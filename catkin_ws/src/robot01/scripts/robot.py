@@ -45,7 +45,7 @@ class Robot:
 		self.goalMarkers = marker.Markers(rgbColour=[1,1,0], namespace="Goals",frame="/map",markerSize_xyz=[0.2,0.2,1.0])
 		nextStart = self.startPose
 		currentGoal = []
-		for goal in self.prioritizedGoals:
+		for goal in self.floatGoals:
 			self.goalMarkers.add_marker(goal)
 		for goal in self.prioritizedGoals:
 			currentPath = astar.find_path(nextStart, goal, self.grid)
