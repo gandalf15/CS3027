@@ -10,7 +10,7 @@ import math
 
 class Controller:
 	"""docstring for Controller"""
-	def __init__(self):
+	def __init__(self,start_pose):
 		rospy.loginfo("Starting Controller")
 		self.ctl_vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
 		self.cmd_vel = Twist()
@@ -21,9 +21,10 @@ class Controller:
 		self.floatGoalMapPose = [0.0,0.0]
 		self.goalTheta = 0.0
 		self.tf = tf.TransformListener()
-		self.currentMapPose = [-64.0,0.0,0.0]
+		self.currentMapPose = start_pose
 		self.latestOdomPose = [0.0,0.0,0.0]
 		self.blocked = False
+		self.goalReached = False
 		rospy.wait_for_message("/amcl_pose", PoseWithCovarianceStamped)
 		rospy.loginfo("AMCL ready")
 		rospy.Subscriber("/amcl_pose", PoseWithCovarianceStamped, self.get_amcl_pose)
@@ -86,7 +87,7 @@ class Controller:
 									self.goalMapPose[0] - self.currentMapPose[0])
 				self.goalMapPose = self.floatGoalMapPose
 				self.cmd_vel.angular.z = self.adjust_rotation(self.goalTheta-self.currentMapPose[2])
-				self.cmd_vel.linear.x = 0.1
+				self.cmd_vel.linear.x = 0.15
 			elif(abs(self.goalMapPose[0]-self.currentMapPose[0])>0.5 or abs(self.goalMapPose[1]-self.currentMapPose[1])>0.5):
 				self.cmd_vel.angular.z = self.adjust_rotation(self.goalTheta-self.currentMapPose[2])
 				if abs(self.cmd_vel.angular.z) > 0.8:
@@ -100,6 +101,10 @@ class Controller:
 				else:
 					self.cmd_vel.linear.x = 1.5
 			else:
+				if len(self.path) == 1:
+					self.goalReached = True
+				else:
+					self.goalReached = False
 				self.goalMapPose = self.path.pop(0)
 				self.goalTheta = math.atan2(self.goalMapPose[1] - self.currentMapPose[1],
 									self.goalMapPose[0] - self.currentMapPose[0])

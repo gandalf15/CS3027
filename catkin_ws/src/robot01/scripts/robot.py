@@ -28,7 +28,6 @@ class Robot:
 		self.previousRealRobotPose = self.get_start()
 		rospy.Subscriber("/base_pose_ground_truth", Odometry, self.setRealPose)
 		self.floatGoals = self.get_goals()
-		self.startPose = self.get_start()
 		self.grid = self.get_map()
 		goalsQueue = PriorityQueue()
 		for g in self.floatGoals:
@@ -36,20 +35,23 @@ class Robot:
 				goalsQueue.put((0,(round(g[0]),round(g[1]))))
 			else:
 				goalsQueue.put((0,(g[0],g[1])))
-		self.prioritizedGoals = astar.prioritize_goals(self.startPose, goalsQueue)
+		self.prioritizedGoals = astar.prioritize_goals((self.currentRealRobotPose[0],self.currentRealRobotPose[1]), goalsQueue)
 		rospy.loginfo("Goals were prioritized based on heuristic.")
 		rospy.loginfo(self.prioritizedGoals)
-		self.control = controller.Controller()
+		self.control = controller.Controller(self.get_start())
 		self.pathMarkers = marker.Markers(rgbColour=[0,0.8,0], namespace="Path",frame="/map",markerSize_xyz=[1.0,1.0,0.01])
-		self.realPathMarkers = marker.Markers(rgbColour=[1,0,0], namespace="realPath",frame="/map",markerSize_xyz=[0.5,0.5,0.5])
+		self.realPathMarkers = marker.Markers(rgbColour=[1,0,0], namespace="realPath",frame="/map",markerSize_xyz=[0.5,0.5,0.4])
 		self.goalMarkers = marker.Markers(rgbColour=[1,1,0], namespace="Goals",frame="/map",markerSize_xyz=[0.2,0.2,1.0])
-		nextStart = self.startPose
+		self.reachedGoalsMarkers = marker.Markers(rgbColour=[0.8,0.2,1], namespace="ReachedGoals",frame="/map",markerSize_xyz=[1.0,1.0,0.6])
+		nextStart = (self.currentRealRobotPose[0],self.currentRealRobotPose[1])
 		currentGoal = []
 		for goal in self.floatGoals:
 			self.goalMarkers.add_marker(goal)
 		for goal in self.prioritizedGoals:
+			rospy.loginfo("Searching path to the next goal.")
 			currentPath = astar.find_path(nextStart, goal, self.grid)
 			if currentPath:
+				rospy.loginfo("Path found.")
 				for pose in currentPath:
 					self.pathMarkers.add_marker(pose)
 				floatGoalIndex = 0
@@ -62,21 +64,23 @@ class Robot:
 				nextStart = (currentPath[-1][0],currentPath[-1][1])
 				self.pathMarkers.draw_markers()
 				self.goalMarkers.draw_markers()
-				rate = rospy.Rate(50)
+				rate = rospy.Rate(100)
 				while not rospy.is_shutdown() and self.control.path:
 					self.control.drive()
+					rate.sleep()
 					self.pathMarkers.draw_markers()
 					rate.sleep()
 					self.goalMarkers.draw_markers()
 					if (abs(self.previousRealRobotPose[0]-self.currentRealRobotPose[0])>0.5 or \
 					abs(self.previousRealRobotPose[1]-self.currentRealRobotPose[1])>0.5):
-						self.realPathMarkers.add_marker(self.currentRealRobotPose)
+						self.realPathMarkers.add_marker([self.currentRealRobotPose[0],self.currentRealRobotPose[1]])
 						self.previousRealRobotPose = self.currentRealRobotPose
 					rate.sleep()
 					self.realPathMarkers.draw_markers()
+					if self.control.goalReached == True:
+						self.reachedGoalsMarkers.add_marker([self.currentRealRobotPose[0],self.currentRealRobotPose[1]])
+					self.reachedGoalsMarkers.draw_markers()
 					rate.sleep()
-					if self.control.path:
-						print "there is path"
 
 		rospy.spin()
 	
@@ -89,8 +93,7 @@ class Robot:
 			print "Service call failed: %s"%e
 	
 	def get_start(self):
-		start = rospy.get_param("/start_pos", [0.0,0.0])
-		start = (round(start[0]),round(start[1]))
+		start = rospy.get_param("/robot_start", [0.0,0.0,0.0])
 		return start
 
 	def get_goals(self):
