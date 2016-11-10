@@ -2,10 +2,10 @@
 	<param name="/use_sim_time" value="true"/>
 	<node name="map_server" pkg="map_server" type="map_server" args="/home/marcel/Documents/Robotics-CS3027/catkin_ws/src/robot01/map.yaml" />
 	<node name="stage" pkg="stage_ros" type="stageros" args="/home/marcel/Documents/Robotics-CS3027/catkin_ws/src/robot01/map.world" />
-	<node pkg="tf" type="static_transform_publisher" name="map_broadcaster" args="64 0 0 0 0 0 1 odom map 100"  />
+	<!--<node pkg="tf" type="static_transform_publisher" name="map_broadcaster" args="64 0 0 0 0 0 1 odom map 100"  />-->
 	<node name="noisy_base_scan" type="addGaussianNoise.py" pkg="robot01" respawn="true"/>
 	<node name="Robot_Pose_Broadcaster" type="RobotPoseBr.py" pkg="robot01" respawn="true"/>
-	<node name="robot_test_points" type="set_param_test_points.py" pkg="robot01"/>
+	<!--<node name="robot_test_points" type="set_param_test_points.py" pkg="robot01"/>-->
 	<!-- http://wiki.ros.org/amcl -->
 	
 	<node pkg="amcl" type="amcl" name="amcl" output="screen">
@@ -39,15 +39,13 @@
 		<param name="transform_tolerance" value="0.1"/>
 		<param name="recovery_alpha_slow" value="0.001"/>
 		<param name="recovery_alpha_fast" value="0.1"/>
+		<param name="initial_pose_a" value="0.0"/>
 		<param name="initial_pose_x" value="-64.0"/>
 		<param name="initial_pose_y" value="0.0"/>
 		<param name="initial_cov_xx" value="0.5"/>
 		<param name="initial_cov_yy" value="0.5"/>
 		<remap from="scan" to="noisy_base_scan" />
 	</node>
-
-	<!--
 	<node name="robot_control" type="robot.py" pkg="robot01" respawn="true" launch-prefix="xterm -e"/>
-	-->
 
 </launch>
