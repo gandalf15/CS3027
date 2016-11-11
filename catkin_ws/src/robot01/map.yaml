@@ -1,4 +1,4 @@
-image: "/home/marcel/Documents/Robotics-CS3027/catkin_ws/src/viki/assignment1Map.png"
+image: "assignment1Map.png"
 resolution: 0.1
 origin: [-72.25,-72.4,0.0]
 occupied_thresh: 0.65

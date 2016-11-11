@@ -4,7 +4,6 @@
 	# http://wiki.ros.org/rviz/DisplayTypes/Marker
 	# http://answers.ros.org/question/11135/plotting-a-markerarray-of-spheres-with-rviz/
 """
-
 import rospy
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray

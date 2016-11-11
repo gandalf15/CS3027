@@ -2,20 +2,13 @@
 
 import rospy
 from nav_msgs.srv import GetMap
-from geometry_msgs.msg import PointStamped
-from std_msgs.msg import Header
-from geometry_msgs.msg import Point
-from sensor_msgs.msg import LaserScan
-from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import Pose
 import tf
 import math
 from Queue import PriorityQueue
 import astar
 import controller
 import marker
-import set_param_test_points as SetPoints
 
 class Robot:
 	"""docstring for Robot"""
@@ -45,9 +38,9 @@ class Robot:
 		self.reachedGoalsMarkers = marker.Markers(rgbColour=[0.8,0.2,1], namespace="ReachedGoals",frame="/map",markerSize_xyz=[1.0,1.0,0.6])
 		nextStart = (self.currentRealRobotPose[0],self.currentRealRobotPose[1])
 		currentGoal = []
-		for goal in self.floatGoals:
+		for goal in self.floatGoals:	#draw markers for goals
 			self.goalMarkers.add_marker(goal)
-		for goal in self.prioritizedGoals:
+		for goal in self.prioritizedGoals:	#for every goal find path if possible and navigate there
 			rospy.loginfo("Searching path to the next goal.")
 			currentPath = astar.find_path(nextStart, goal, self.grid)
 			if currentPath:
@@ -55,7 +48,7 @@ class Robot:
 				for pose in currentPath:
 					self.pathMarkers.add_marker(pose)
 				floatGoalIndex = 0
-				for i in range(len(self.floatGoals)):
+				for i in range(len(self.floatGoals)):	#also store the value of precise position of goal for the last steps
 					fGoal = self.floatGoals[i]
 					if round(fGoal[0]) == goal[0] and round(fGoal[1]) == goal[1]:
 						floatGoalIndex = i
@@ -67,21 +60,20 @@ class Robot:
 				rate = rospy.Rate(100)
 				while not rospy.is_shutdown() and self.control.path:
 					self.control.drive()
-					rate.sleep()
+					rate.sleep()	#on my PC rviz frezes if I do not include some pause
 					self.pathMarkers.draw_markers()
 					rate.sleep()
 					self.goalMarkers.draw_markers()
 					if (abs(self.previousRealRobotPose[0]-self.currentRealRobotPose[0])>0.5 or \
-					abs(self.previousRealRobotPose[1]-self.currentRealRobotPose[1])>0.5):
+					abs(self.previousRealRobotPose[1]-self.currentRealRobotPose[1])>0.5):	#draw real path markers only every 0.5 meter
 						self.realPathMarkers.add_marker([self.currentRealRobotPose[0],self.currentRealRobotPose[1]])
 						self.previousRealRobotPose = self.currentRealRobotPose
 					rate.sleep()
 					self.realPathMarkers.draw_markers()
-					if self.control.goalReached == True:
+					if self.control.goalReached == True:	# if controller set the value to true then draw marker
 						self.reachedGoalsMarkers.add_marker([self.currentRealRobotPose[0],self.currentRealRobotPose[1]])
 					self.reachedGoalsMarkers.draw_markers()
 					rate.sleep()
-
 		rospy.spin()
 	
 	def get_map(self):

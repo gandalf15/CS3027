@@ -5,7 +5,6 @@
 	# http://wiki.ros.org/tf/Tutorials/Adding%20a%20frame%20(Python)
 	# http://wiki.ros.org/PyStyleGuide
 """
-
 import rospy
 import tf
 from nav_msgs.msg import Odometry
@@ -84,13 +83,13 @@ class RobotPoseBr:
 		except:
 			rospy.loginfo("Broadcast transform real_robot_pose EXCEPTION!")
 	
-	def set_amcl_pose_marker(self):
+	def set_amcl_pose_marker(self):	#this is what the robot thinks where it is on the map
 		position = self.amclPose.pose.pose.position
 		orientation = self.amclPose.pose.pose.orientation
 		namespace = 'robot_amcl_pose'
 		frame_id = '/map'
 		self.addMarker(position,orientation,0.1,0.1,1,namespace,frame_id,alpha=1)
-	def set_real_pose_marker(self):
+	def set_real_pose_marker(self):	#this is real position of the robot
 		position = self.realPose.pose.pose.position
 		orientation = self.realPose.pose.pose.orientation
 		namespace = 'robot_real_pose'
